@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import './Idea';  // Import to ensure model registration
 
 export interface ICollection {
   name: string;

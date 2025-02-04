@@ -7,8 +7,8 @@ export async function GET(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
   try {
+    const { id } = await Promise.resolve(context.params);
     await connectDB();
     const collection = await Collection.findById(id).populate<{ ideas: IIdea[] }>('ideas');
     if (!collection) {

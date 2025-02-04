@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 /* Design Tokens */
+html {
+  @apply transition-colors duration-200;
+}
+
 .dark {
   /* Colors */
   --color-primary: #3b82f6;
@@ -62,7 +66,7 @@
 /* Base Styles */
 @layer base {
   body {
-    @apply antialiased transition-colors duration-200;
+    @apply antialiased;
     background-color: var(--bg-base);
     color: var(--text-primary);
   }
