@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design Tokens */
+.dark {
+  /* Colors */
+  --color-primary: #3b82f6;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  
+  /* Background */
+  --bg-base: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-elevated: #334155;
+  --bg-input: #1e293b;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  
+  /* Text */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  
+  /* Borders */
+  --border-color: #475569;
+  --border-focus: #3b82f6;
+  
+  /* Elevation */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.light {
+  /* Colors */
+  --color-primary: #2563eb;
+  --color-success: #059669;
+  --color-danger: #dc2626;
+  
+  /* Background */
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-input: #f8fafc;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  
+  /* Borders */
+  --border-color: #e2e8f0;
+  --border-focus: #2563eb;
+  
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Base Styles */
+@layer base {
+  body {
+    @apply antialiased transition-colors duration-200;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+  }
+}
+
+/* Component Styles */
+@layer components {
+  /* Card Component */
+  .card {
+    @apply p-6 rounded-2xl transition-all duration-200;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+  }
+
+  /* Input Component */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl text-base transition-all duration-200;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .input:hover {
+    background-color: var(--bg-hover);
+  }
+
+  .input:focus {
+    @apply outline-none ring-2;
+    border-color: var(--color-primary);
+    ring-color: var(--color-primary);
+    ring-opacity: 0.2;
+  }
+
+  .input::placeholder {
+    color: var(--text-secondary);
+  }
+
+  /* Select Component */
+  select.input {
+    @apply pr-10 cursor-pointer;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Button Components */
+  .btn {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    @apply btn;
+    background-color: var(--color-primary);
+    color: white;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-primary:hover {
+    filter: brightness(110%);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-success {
+    @apply btn;
+    background-color: var(--color-success);
+    color: white;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-success:hover {
+    filter: brightness(110%);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-danger {
+    @apply btn;
+    background-color: var(--color-danger);
+    color: white;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-danger:hover {
+    filter: brightness(110%);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Disabled State */
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
