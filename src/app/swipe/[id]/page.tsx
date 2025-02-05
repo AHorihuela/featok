@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { motion, PanInfo, useAnimation } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -29,27 +30,33 @@ const SWIPE_VELOCITY = 0.3; // minimum velocity for a swipe
 
 export default function SwipePage({ params }: PageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const [ideas, setIdeas] = useState<ProductIdea[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [swipeDirection, setSwipeDirection] = useState<VoteType | null>(null);
+  const [isCreator, setIsCreator] = useState(false);
   const controls = useAnimation();
 
   useEffect(() => {
-    fetchIdeas();
+    const creatorId = localStorage.getItem('featok_creator_id');
+    fetchIdeas(creatorId);
   }, [id]);
 
-  const fetchIdeas = async () => {
+  const fetchIdeas = async (creatorId: string | null) => {
     try {
       const response = await fetch(`/api/ideas/group/${id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch ideas');
       }
       const data = await response.json();
-      setIdeas(
-        data.sort((a: ProductIdea, b: ProductIdea) => a.order - b.order)
-      );
+      setIdeas(data.sort((a: ProductIdea, b: ProductIdea) => a.order - b.order));
+      
+      // Check if current user is the creator
+      if (creatorId && data.length > 0 && data[0].creatorId === creatorId) {
+        setIsCreator(true);
+      }
     } catch (error) {
       setError('Failed to load ideas. Please try again later.');
       console.error('Fetch error:', error);
@@ -189,11 +196,29 @@ export default function SwipePage({ params }: PageProps) {
   if (currentIndex >= ideas.length) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-2xl mx-auto px-4">
           <h1 className="text-3xl font-bold mb-4">All Done! 🎉</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-8">
             You&apos;ve voted on all the ideas in this group.
           </p>
+          
+          {isCreator && (
+            <div className="flex justify-center gap-4 mb-8">
+              <button
+                onClick={() => router.push(`/edit/${id}`)}
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Edit List
+              </button>
+              <button
+                onClick={() => router.push('/my-lists')}
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                Manage Lists
+              </button>
+            </div>
+          )}
+          
           <div className="mt-8 space-y-4">
             <h2 className="text-xl font-semibold">Final Results:</h2>
             {ideas.map(idea => (
@@ -203,7 +228,7 @@ export default function SwipePage({ params }: PageProps) {
               >
                 <h3 className="font-medium">{idea.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  🔥 {idea.votes.superLike} | 👍 {idea.votes.up} | 😐{' '}
+                  🔥 {idea.votes.superLike} | ✨ {idea.votes.up} | 😐{' '}
                   {idea.votes.neutral}
                 </p>
               </div>
@@ -218,108 +243,82 @@ export default function SwipePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Vote on Ideas</h1>
-          <p className="text-gray-600">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="text-left mb-8">
+          <h1 className="text-4xl font-bold mb-2">Vote on Ideas</h1>
+          <p className="text-gray-600 text-lg">
             Idea {currentIndex + 1} of {ideas.length}
           </p>
         </div>
 
-        <div className="relative h-[60vh] flex items-center justify-center">
-          {/* Swipe Direction Indicators */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div
-              className={`absolute inset-x-0 top-0 h-1/3 flex items-center justify-center transition-opacity ${
-                swipeDirection === 'up' ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
-                ✨ Neat
-              </div>
-            </div>
-            <div
-              className={`absolute right-0 inset-y-0 w-1/3 flex items-center justify-center transition-opacity ${
-                swipeDirection === 'superLike' ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <div className="bg-pink-500 text-white px-6 py-3 rounded-lg shadow-lg">
-                🔥 Sick!
-              </div>
-            </div>
-            <div
-              className={`absolute left-0 inset-y-0 w-1/3 flex items-center justify-center transition-opacity ${
-                swipeDirection === 'neutral' ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <div className="bg-gray-500 text-white px-6 py-3 rounded-lg shadow-lg">
-                😐 Meh
-              </div>
+        <motion.div
+          drag
+          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+          dragElastic={0.9}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          animate={controls}
+          className="w-full"
+        >
+          <div
+            className={`bg-white rounded-xl shadow-lg p-8 space-y-4 transition-colors ${
+              swipeDirection === 'superLike'
+                ? 'bg-pink-50'
+                : swipeDirection === 'up'
+                  ? 'bg-green-50'
+                  : swipeDirection === 'neutral'
+                    ? 'bg-gray-50'
+                    : ''
+            }`}
+          >
+            <h2 className="text-2xl font-bold">{currentIdea.title}</h2>
+            <p className="text-gray-600 text-lg">{currentIdea.description}</p>
+
+            <div className="flex justify-between items-center pt-8 text-lg">
+              <button
+                onClick={() => handleVote('neutral')}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                👈 Meh
+              </button>
+              <button
+                onClick={() => handleVote('up')}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                ⬆️ Neat
+              </button>
+              <button
+                onClick={() => handleVote('superLike')}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Sick! 👉
+              </button>
             </div>
           </div>
+        </motion.div>
 
-          <motion.div
-            drag
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.9}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            animate={controls}
-            className="absolute w-full max-w-md cursor-grab active:cursor-grabbing"
-          >
-            <div
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-4 transition-colors ${
-                swipeDirection === 'superLike'
-                  ? 'bg-pink-50 dark:bg-pink-900'
-                  : swipeDirection === 'up'
-                    ? 'bg-green-50 dark:bg-green-900'
-                    : swipeDirection === 'neutral'
-                      ? 'bg-gray-50 dark:bg-gray-900'
-                      : ''
-              }`}
-            >
-              <h2 className="text-2xl font-bold">{currentIdea.title}</h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {currentIdea.description}
-              </p>
-
-              <div className="grid grid-cols-3 gap-4 pt-4 text-center text-sm">
-                <div className="text-gray-500">👈 Meh</div>
-                <div className="text-gray-500">⬆️ Neat</div>
-                <div className="text-gray-500">Sick! 👉</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Vote Buttons */}
-        <div className="mt-8 flex justify-center gap-4">
-          <button
-            onClick={() => handleVote('neutral')}
-            className="p-4 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-          >
-            😐
-          </button>
-          <button
-            onClick={() => handleVote('up')}
-            className="p-4 rounded-full bg-green-100 hover:bg-green-200 dark:bg-green-800 dark:hover:bg-green-700 transition-colors"
-          >
-            ✨
-          </button>
-          <button
-            onClick={() => handleVote('superLike')}
-            className="p-4 rounded-full bg-pink-100 hover:bg-pink-200 dark:bg-pink-800 dark:hover:bg-pink-700 transition-colors"
-          >
-            🔥
-          </button>
-        </div>
-
-        <div className="mt-4 text-center text-gray-600">
-          <p className="mt-2">
-            Current votes: 🔥 Sick! {currentIdea.votes.superLike} | ✨ Neat{' '}
-            {currentIdea.votes.up} | 😐 Meh {currentIdea.votes.neutral}
+        <div className="mt-8 text-center text-gray-600">
+          <p className="text-lg">
+            Current votes: 🔥 Sick! {currentIdea.votes.superLike} | ✨ Neat {currentIdea.votes.up} | 😐 Meh {currentIdea.votes.neutral}
           </p>
         </div>
+
+        {isCreator && (
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={() => router.push(`/edit/${id}`)}
+              className="px-4 py-2 text-blue-600 hover:text-blue-800"
+            >
+              Edit List
+            </button>
+            <button
+              onClick={() => router.push('/my-lists')}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              My Lists
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );

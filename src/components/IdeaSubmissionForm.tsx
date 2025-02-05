@@ -55,15 +55,17 @@ export default function IdeaSubmissionForm() {
   };
 
   const parseIdeas = (text: string): IdeaInput[] => {
-    // Split by double newline to separate ideas
     return text
       .split(/\n\s*\n/)
       .filter(block => block.trim())
       .map(block => {
         const lines = block.split('\n');
-        const title = lines[0].replace(/^[-*•]?\s*/, '').trim(); // Remove any list markers
+        const title = lines[0].replace(/^[-*•]?\s*/, '').trim();
         const description = lines.slice(1).join('\n').trim();
-        return { title, description: description || title }; // Use title as description if none provided
+        return { 
+          title: title || '', 
+          description: description || title || ''
+        };
       });
   };
 
@@ -72,10 +74,26 @@ export default function IdeaSubmissionForm() {
     setIdeas(parseIdeas(e.target.value));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateIdeas = (ideas: IdeaInput[]): boolean => {
     if (ideas.length === 0) {
       showToast('Please add at least one idea', 'error');
+      return false;
+    }
+
+    for (const idea of ideas) {
+      if (!idea.title.trim()) {
+        showToast('Each idea must have a title', 'error');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateIdeas(ideas)) {
       return;
     }
 
@@ -93,30 +111,31 @@ export default function IdeaSubmissionForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ideas, creatorId }),
+        body: JSON.stringify({ 
+          ideas: ideas.map(idea => ({
+            title: idea.title.trim(),
+            description: idea.description.trim() || idea.title.trim()
+          })),
+          creatorId 
+        }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Store the group ID in localStorage for editing later
-        const createdGroups = JSON.parse(
-          localStorage.getItem('featok_created_groups') || '[]'
-        );
-        createdGroups.push(data.groupId);
-        localStorage.setItem(
-          'featok_created_groups',
-          JSON.stringify(createdGroups)
-        );
-
-        showToast('Ideas submitted successfully!');
-        // Wait for the toast to be visible before redirecting
-        setTimeout(() => {
-          router.push(`/swipe/${data.groupId}`);
-        }, 1000);
-      } else {
-        throw new Error(data.message || 'Something went wrong');
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit ideas');
       }
+
+      // Store the group ID in localStorage for editing later
+      const createdGroups = JSON.parse(localStorage.getItem('featok_created_groups') || '[]');
+      createdGroups.push(data.groupId);
+      localStorage.setItem('featok_created_groups', JSON.stringify(createdGroups));
+
+      showToast('Ideas submitted successfully!');
+      // Wait for the toast to be visible before redirecting
+      setTimeout(() => {
+        router.push(`/swipe/${data.groupId}`);
+      }, 1000);
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : 'Failed to submit ideas',
