@@ -242,7 +242,17 @@ export default function SwipePage({ params }: PageProps) {
   const currentIdea = ideas[currentIndex];
 
   return (
-    <main className="min-h-screen py-12">
+    <main className="min-h-screen py-12 transition-colors duration-300"
+      style={{
+        backgroundColor: swipeDirection === 'superLike' 
+          ? 'rgba(34, 197, 94, 0.1)' // Green for right swipe
+          : swipeDirection === 'up'
+            ? 'rgba(234, 179, 8, 0.1)' // Yellow for up swipe
+            : swipeDirection === 'neutral'
+              ? 'rgba(239, 68, 68, 0.1)' // Red for left swipe
+              : 'var(--bg-base)'
+      }}
+    >
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-left mb-8">
           <h1 className="text-4xl font-bold mb-2">Vote on Ideas</h1>
@@ -254,69 +264,146 @@ export default function SwipePage({ params }: PageProps) {
         <motion.div
           drag
           dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          dragElastic={0.9}
+          dragElastic={0.7}
           onDrag={handleDrag}
           onDragEnd={handleDragEnd}
           animate={controls}
-          className="w-full"
+          whileTap={{ scale: 1.02 }}
+          style={{
+            width: '100%',
+            perspective: 1000
+          }}
         >
-          <div
-            className={`bg-white rounded-xl shadow-lg p-8 space-y-4 transition-colors ${
-              swipeDirection === 'superLike'
-                ? 'bg-pink-50'
-                : swipeDirection === 'up'
-                  ? 'bg-green-50'
-                  : swipeDirection === 'neutral'
-                    ? 'bg-gray-50'
-                    : ''
-            }`}
+          <motion.div
+            className="relative w-full"
+            style={{
+              rotateX: swipeDirection === 'up' ? -10 : 0,
+              rotateY: swipeDirection === 'superLike' ? 10 
+                     : swipeDirection === 'neutral' ? -10 
+                     : 0,
+              transformStyle: 'preserve-3d'
+            }}
           >
-            <h2 className="text-2xl font-bold">{currentIdea.title}</h2>
-            <p className="text-gray-600 text-lg">{currentIdea.description}</p>
+            {/* Vote indicators */}
+            <motion.div 
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: swipeDirection ? 0.9 : 0,
+                scale: swipeDirection ? 1.2 : 0.8
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              {swipeDirection === 'superLike' && (
+                <div className="text-6xl transform rotate-12 text-green-500">🔥</div>
+              )}
+              {swipeDirection === 'up' && (
+                <div className="text-6xl text-yellow-500">✨</div>
+              )}
+              {swipeDirection === 'neutral' && (
+                <div className="text-6xl transform -rotate-12 text-red-500">😐</div>
+              )}
+            </motion.div>
 
-            <div className="flex justify-between items-center pt-8 text-lg">
-              <button
-                onClick={() => handleVote('neutral')}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+            <div
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 space-y-4 transition-all duration-300 ${
+                swipeDirection === 'superLike'
+                  ? 'bg-green-50 dark:bg-green-900/30 shadow-green-200/50 dark:shadow-green-900/30'
+                  : swipeDirection === 'up'
+                    ? 'bg-yellow-50 dark:bg-yellow-900/30 shadow-yellow-200/50 dark:shadow-yellow-900/30'
+                    : swipeDirection === 'neutral'
+                      ? 'bg-red-50 dark:bg-red-900/30 shadow-red-200/50 dark:shadow-red-900/30'
+                      : ''
+              }`}
+              style={{
+                transform: 'translateZ(0)',
+                boxShadow: swipeDirection 
+                  ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                  : undefined
+              }}
+            >
+              <motion.h2 
+                className="text-2xl font-bold"
+                animate={{ 
+                  scale: swipeDirection ? 1.02 : 1,
+                  translateY: swipeDirection ? -2 : 0
+                }}
               >
-                👈 Meh
-              </button>
-              <button
-                onClick={() => handleVote('up')}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                {currentIdea.title}
+              </motion.h2>
+              <motion.p 
+                className="text-gray-600 dark:text-gray-300 text-lg"
+                animate={{ 
+                  scale: swipeDirection ? 0.98 : 1,
+                  translateY: swipeDirection ? 2 : 0
+                }}
               >
-                ⬆️ Neat
-              </button>
-              <button
-                onClick={() => handleVote('superLike')}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Sick! 👉
-              </button>
+                {currentIdea.description}
+              </motion.p>
+
+              <div className="flex justify-between items-center pt-8 text-lg opacity-75 hover:opacity-100 transition-opacity">
+                <motion.button
+                  onClick={() => handleVote('neutral')}
+                  className="text-red-500 hover:text-red-600 transition-colors"
+                  whileHover={{ scale: 1.1, x: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  👈 Nope
+                </motion.button>
+                <motion.button
+                  onClick={() => handleVote('up')}
+                  className="text-yellow-500 hover:text-yellow-600 transition-colors"
+                  whileHover={{ scale: 1.1, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  ⬆️ Maybe
+                </motion.button>
+                <motion.button
+                  onClick={() => handleVote('superLike')}
+                  className="text-green-500 hover:text-green-600 transition-colors"
+                  whileHover={{ scale: 1.1, x: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Yes! 👉
+                </motion.button>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
-        <div className="mt-8 text-center text-gray-600">
+        <motion.div 
+          className="mt-8 text-center"
+          animate={{ 
+            opacity: swipeDirection ? 0.7 : 1,
+            scale: swipeDirection ? 0.98 : 1
+          }}
+        >
           <p className="text-lg">
-            Current votes: 🔥 Sick! {currentIdea.votes.superLike} | ✨ Neat {currentIdea.votes.up} | 😐 Meh {currentIdea.votes.neutral}
+            Current votes: 
+            <span className="text-green-500"> 🔥 Yes! {currentIdea.votes.superLike}</span> | 
+            <span className="text-yellow-500"> ✨ Maybe {currentIdea.votes.up}</span> | 
+            <span className="text-red-500"> 😐 Nope {currentIdea.votes.neutral}</span>
           </p>
-        </div>
+        </motion.div>
 
         {isCreator && (
           <div className="mt-8 flex justify-center gap-4">
-            <button
+            <motion.button
               onClick={() => router.push(`/edit/${id}`)}
               className="px-4 py-2 text-blue-600 hover:text-blue-800"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Edit List
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => router.push('/my-lists')}
               className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               My Lists
-            </button>
+            </motion.button>
           </div>
         )}
       </div>
