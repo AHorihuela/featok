@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { motion, PanInfo, useAnimation } from 'framer-motion';
+import { motion, PanInfo, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
 interface PageProps {
@@ -28,6 +28,12 @@ type VoteType = 'superLike' | 'up' | 'neutral';
 const SWIPE_THRESHOLD = 100; // minimum distance for a swipe
 const SWIPE_VELOCITY = 0.3; // minimum velocity for a swipe
 
+// Add new state for vote confirmation
+interface VoteConfirmation {
+  type: VoteType;
+  idea: ProductIdea;
+}
+
 export default function SwipePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
@@ -38,6 +44,18 @@ export default function SwipePage({ params }: PageProps) {
   const [swipeDirection, setSwipeDirection] = useState<VoteType | null>(null);
   const [isCreator, setIsCreator] = useState(false);
   const controls = useAnimation();
+  const [voteConfirmation, setVoteConfirmation] = useState<VoteConfirmation | null>(null);
+  const [lastVote, setLastVote] = useState<VoteConfirmation | null>(null);
+  const [dragIntensity, setDragIntensity] = useState(0);
+  const [showInstructions, setShowInstructions] = useState(true);
+
+  useEffect(() => {
+    // Hide instructions after 3 seconds
+    if (showInstructions) {
+      const timer = setTimeout(() => setShowInstructions(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showInstructions]);
 
   useEffect(() => {
     const creatorId = localStorage.getItem('featok_creator_id');
@@ -69,6 +87,9 @@ export default function SwipePage({ params }: PageProps) {
     if (currentIndex >= ideas.length) return;
 
     const currentIdea = ideas[currentIndex];
+    setVoteConfirmation({ type, idea: currentIdea });
+    setLastVote({ type, idea: currentIdea });
+
     try {
       const response = await fetch(
         `/api/ideas/${currentIdea.shareableId}/vote`,
@@ -87,6 +108,45 @@ export default function SwipePage({ params }: PageProps) {
 
       const updatedIdea = await response.json();
 
+      setIdeas(
+        ideas.map(idea =>
+          idea.shareableId === updatedIdea.shareableId ? updatedIdea : idea
+        )
+      );
+
+      setTimeout(() => {
+        setVoteConfirmation(null);
+        setCurrentIndex(prev => prev + 1);
+      }, 800);
+    } catch (error) {
+      console.error('Vote error:', error);
+      setVoteConfirmation(null);
+      setLastVote(null);
+      throw error;
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!voteConfirmation) return;
+
+    try {
+      // Revert the vote
+      const response = await fetch(
+        `/api/ideas/${voteConfirmation.idea.shareableId}/vote/undo`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to undo vote');
+      }
+
+      const updatedIdea = await response.json();
+
       // Update the idea in our local state
       setIdeas(
         ideas.map(idea =>
@@ -94,11 +154,9 @@ export default function SwipePage({ params }: PageProps) {
         )
       );
 
-      // Move to next idea
-      setCurrentIndex(prev => prev + 1);
+      setVoteConfirmation(null);
     } catch (error) {
-      console.error('Vote error:', error);
-      throw error;
+      console.error('Undo error:', error);
     }
   };
 
@@ -109,18 +167,26 @@ export default function SwipePage({ params }: PageProps) {
     const xOffset = info.offset.x;
     const yOffset = info.offset.y;
 
-    // Determine swipe direction based on the strongest movement
+    // Calculate the intensity based on drag distance (0 to 1)
+    const maxDragDistance = 150; // Adjust this value to control sensitivity
+    let intensity = 0;
+
+    // Determine swipe direction and intensity based on the strongest movement
     if (Math.abs(xOffset) > Math.abs(yOffset)) {
+      intensity = Math.min(Math.abs(xOffset) / maxDragDistance, 1);
       if (xOffset > 50) {
         setSwipeDirection('superLike');
       } else if (xOffset < -50) {
         setSwipeDirection('neutral');
       }
     } else if (yOffset < -50) {
+      intensity = Math.min(Math.abs(yOffset) / maxDragDistance, 1);
       setSwipeDirection('up');
     } else {
       setSwipeDirection(null);
     }
+
+    setDragIntensity(intensity);
   };
 
   const handleDragEnd = async (
@@ -172,12 +238,69 @@ export default function SwipePage({ params }: PageProps) {
     }
 
     setSwipeDirection(null);
+    setDragIntensity(0); // Reset intensity at the end of drag
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="relative w-64 h-64">
+          {/* Love Card (Right) */}
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-64 bg-white rounded-2xl shadow-lg"
+            animate={{
+              x: [0, 200, 0],
+              rotate: [0, 15, 0],
+              opacity: [1, 0.5, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0,
+            }}
+          >
+            <div className="absolute bottom-4 right-4 text-green-500 text-2xl">❤️</div>
+          </motion.div>
+
+          {/* Neat Card (Up) */}
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-64 bg-white rounded-2xl shadow-lg"
+            animate={{
+              y: [0, -200, 0],
+              opacity: [1, 0.5, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.6,
+            }}
+          >
+            <div className="absolute bottom-4 right-4 text-yellow-500 text-2xl">😊</div>
+          </motion.div>
+
+          {/* Meh Card (Left) */}
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-64 bg-white rounded-2xl shadow-lg"
+            animate={{
+              x: [0, -200, 0],
+              rotate: [0, -15, 0],
+              opacity: [1, 0.5, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1.2,
+            }}
+          >
+            <div className="absolute bottom-4 right-4 text-red-500 text-2xl">🤷</div>
+          </motion.div>
+
+          {/* Static Card (Base) */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-64 bg-white/50 rounded-2xl shadow-lg" />
+        </div>
       </div>
     );
   }
@@ -228,8 +351,7 @@ export default function SwipePage({ params }: PageProps) {
               >
                 <h3 className="font-medium">{idea.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  🔥 {idea.votes.superLike} | ✨ {idea.votes.up} | 😐{' '}
-                  {idea.votes.neutral}
+                  ❤️ {idea.votes.superLike} | 😊 {idea.votes.up} | 🤷 {idea.votes.neutral}
                 </p>
               </div>
             ))}
@@ -242,171 +364,163 @@ export default function SwipePage({ params }: PageProps) {
   const currentIdea = ideas[currentIndex];
 
   return (
-    <main className="min-h-screen py-12 transition-colors duration-300"
+    <main 
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden"
       style={{
         backgroundColor: swipeDirection === 'superLike' 
-          ? 'rgba(34, 197, 94, 0.1)' // Green for right swipe
+          ? `rgba(22, 163, 74, ${dragIntensity * 0.15})`
           : swipeDirection === 'up'
-            ? 'rgba(234, 179, 8, 0.1)' // Yellow for up swipe
+            ? `rgba(234, 179, 8, ${dragIntensity * 0.15})`
             : swipeDirection === 'neutral'
-              ? 'rgba(239, 68, 68, 0.1)' // Red for left swipe
-              : 'var(--bg-base)'
+              ? `rgba(239, 68, 68, ${dragIntensity * 0.15})`
+              : 'rgb(249, 250, 251)'
       }}
     >
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="text-left mb-8">
-          <h1 className="text-4xl font-bold mb-2">Vote on Ideas</h1>
-          <p className="text-gray-600 text-lg">
-            Idea {currentIndex + 1} of {ideas.length}
-          </p>
+      <div className="max-w-lg mx-auto px-6 py-8">
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Vote on Ideas</h1>
+          <div className="flex items-center gap-2 text-lg">
+            <span className="font-medium text-gray-400">{currentIndex + 1}</span>
+            <span className="text-gray-300">/</span>
+            <span className="font-medium text-gray-500">{ideas.length}</span>
+          </div>
         </div>
 
-        <motion.div
-          drag
-          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          dragElastic={0.7}
-          onDrag={handleDrag}
-          onDragEnd={handleDragEnd}
-          animate={controls}
-          whileTap={{ scale: 1.02 }}
-          style={{
-            width: '100%',
-            perspective: 1000
-          }}
-        >
+        {/* Card Container */}
+        <div className="h-[calc(100vh-320px)] relative flex items-center justify-center">
           <motion.div
-            className="relative w-full"
-            style={{
-              rotateX: swipeDirection === 'up' ? -10 : 0,
-              rotateY: swipeDirection === 'superLike' ? 10 
-                     : swipeDirection === 'neutral' ? -10 
-                     : 0,
-              transformStyle: 'preserve-3d'
+            drag={!voteConfirmation}
+            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            dragElastic={0.7}
+            onDrag={handleDrag}
+            onDragEnd={handleDragEnd}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.currentTarget.style.touchAction = 'none';
+              setShowInstructions(false);
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.touchAction = 'auto';
+            }}
+            animate={controls}
+            className="relative touch-none w-full"
+            style={{ 
+              transformOrigin: "bottom center",
+              transform: `perspective(1000px)`,
             }}
           >
-            {/* Vote indicators */}
-            <motion.div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ 
-                opacity: swipeDirection ? 0.9 : 0,
-                scale: swipeDirection ? 1.2 : 0.8
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              {swipeDirection === 'superLike' && (
-                <div className="text-6xl transform rotate-12 text-green-500">🔥</div>
-              )}
-              {swipeDirection === 'up' && (
-                <div className="text-6xl text-yellow-500">✨</div>
-              )}
-              {swipeDirection === 'neutral' && (
-                <div className="text-6xl transform -rotate-12 text-red-500">😐</div>
-              )}
-            </motion.div>
-
-            <div
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 space-y-4 transition-all duration-300 ${
-                swipeDirection === 'superLike'
-                  ? 'bg-green-50 dark:bg-green-900/30 shadow-green-200/50 dark:shadow-green-900/30'
-                  : swipeDirection === 'up'
-                    ? 'bg-yellow-50 dark:bg-yellow-900/30 shadow-yellow-200/50 dark:shadow-yellow-900/30'
-                    : swipeDirection === 'neutral'
-                      ? 'bg-red-50 dark:bg-red-900/30 shadow-red-200/50 dark:shadow-red-900/30'
-                      : ''
-              }`}
-              style={{
-                transform: 'translateZ(0)',
-                boxShadow: swipeDirection 
-                  ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                  : undefined
+            <motion.div
+              key="card"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-10 touch-none min-h-[420px] flex flex-col"
+              animate={{
+                rotate: swipeDirection === 'superLike' 
+                  ? 15 
+                  : swipeDirection === 'neutral' 
+                    ? -15 
+                    : swipeDirection === 'up'
+                      ? 0
+                      : 0,
+                y: swipeDirection === 'up' ? -20 : 0,
+                transition: { type: "spring", stiffness: 300, damping: 20 }
               }}
             >
-              <motion.h2 
-                className="text-2xl font-bold"
-                animate={{ 
-                  scale: swipeDirection ? 1.02 : 1,
-                  translateY: swipeDirection ? -2 : 0
-                }}
-              >
-                {currentIdea.title}
-              </motion.h2>
-              <motion.p 
-                className="text-gray-600 dark:text-gray-300 text-lg"
-                animate={{ 
-                  scale: swipeDirection ? 0.98 : 1,
-                  translateY: swipeDirection ? 2 : 0
-                }}
-              >
-                {currentIdea.description}
-              </motion.p>
+              <div className="flex-grow">
+                <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
+                  {currentIdea.title}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
+                  {currentIdea.description}
+                </p>
+              </div>
 
-              <div className="flex justify-between items-center pt-8 text-lg opacity-75 hover:opacity-100 transition-opacity">
+              <div className="grid grid-cols-3 gap-4 mt-8">
                 <motion.button
                   onClick={() => handleVote('neutral')}
-                  className="text-red-500 hover:text-red-600 transition-colors"
-                  whileHover={{ scale: 1.1, x: -5 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="w-full py-4 px-4 rounded-2xl bg-red-50 text-red-500 font-medium text-lg hover:bg-red-100 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  👈 Nope
+                  🤷 Meh
                 </motion.button>
                 <motion.button
                   onClick={() => handleVote('up')}
-                  className="text-yellow-500 hover:text-yellow-600 transition-colors"
-                  whileHover={{ scale: 1.1, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="w-full py-4 px-4 rounded-2xl bg-yellow-50 text-yellow-600 font-medium text-lg hover:bg-yellow-100 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  ⬆️ Maybe
+                  😊 Neat
                 </motion.button>
                 <motion.button
                   onClick={() => handleVote('superLike')}
-                  className="text-green-500 hover:text-green-600 transition-colors"
-                  whileHover={{ scale: 1.1, x: 5 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="w-full py-4 px-4 rounded-2xl bg-green-50 text-green-500 font-medium text-lg hover:bg-green-100 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Yes! 👉
+                  ❤️ Love
                 </motion.button>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          className="mt-8 text-center"
-          animate={{ 
-            opacity: swipeDirection ? 0.7 : 1,
-            scale: swipeDirection ? 0.98 : 1
-          }}
-        >
-          <p className="text-lg">
-            Current votes: 
-            <span className="text-green-500"> 🔥 Yes! {currentIdea.votes.superLike}</span> | 
-            <span className="text-yellow-500"> ✨ Maybe {currentIdea.votes.up}</span> | 
-            <span className="text-red-500"> 😐 Nope {currentIdea.votes.neutral}</span>
-          </p>
-        </motion.div>
-
-        {isCreator && (
-          <div className="mt-8 flex justify-center gap-4">
-            <motion.button
-              onClick={() => router.push(`/edit/${id}`)}
-              className="px-4 py-2 text-blue-600 hover:text-blue-800"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Edit List
-            </motion.button>
-            <motion.button
-              onClick={() => router.push('/my-lists')}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              My Lists
-            </motion.button>
-          </div>
-        )}
+        <div className="mt-10 flex justify-center gap-12">
+          <a
+            href={`/edit/${id}`}
+            className="text-blue-500 hover:text-blue-600 text-lg font-medium flex items-center gap-2"
+          >
+            ✏️ Edit List
+          </a>
+          <a
+            href="/my-lists"
+            className="text-gray-600 hover:text-gray-700 text-lg font-medium flex items-center gap-2"
+          >
+            📋 My Lists
+          </a>
+        </div>
       </div>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {voteConfirmation && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg rounded-lg px-6 py-3 flex items-center gap-3"
+          >
+            <span className="text-2xl">
+              {voteConfirmation.type === 'superLike' && '❤️'}
+              {voteConfirmation.type === 'up' && '😊'}
+              {voteConfirmation.type === 'neutral' && '🤷'}
+            </span>
+            <span className="font-medium text-gray-700 dark:text-gray-200">
+              {voteConfirmation.type === 'superLike' && 'Loved'}
+              {voteConfirmation.type === 'up' && 'Neat'}
+              {voteConfirmation.type === 'neutral' && 'Meh'}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Persistent Undo Button */}
+      <AnimatePresence>
+        {lastVote && (
+          <motion.button
+            onClick={handleUndo}
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg rounded-full px-6 py-3 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="text-blue-500">↩️</span>
+            <span className="font-medium text-gray-700 dark:text-gray-200">Undo Last Vote</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
