@@ -55,36 +55,48 @@ export default function IdeaSubmissionForm() {
   };
 
   const parseIdeas = (text: string): IdeaInput[] => {
-    return text
+    // First trim the entire text to remove leading/trailing blank lines
+    const trimmedText = text.trim();
+    if (!trimmedText) return [];
+
+    return trimmedText
       .split(/\n\s*\n/)
       .filter(block => block.trim())
       .map(block => {
-        const lines = block.split('\n');
-        const title = lines[0].replace(/^[-*•]?\s*/, '').trim();
-        const description = lines.slice(1).join('\n').trim();
+        const lines = block.trim().split('\n');
+        // Find first non-empty line for title
+        const title = lines.find(line => line.trim())?.replace(/^[-*•]\s*/, '').trim() || '';
+        // Get all lines after the title for description
+        const description = lines.slice(lines.findIndex(line => line.trim()) + 1)
+          .join('\n')
+          .trim();
+        
         return { 
-          title: title || '', 
-          description: description || title || ''
+          title,
+          description: description || title
         };
       });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const parsedIdeas = parseIdeas(e.target.value);
+    console.log('All parsed ideas:', parsedIdeas);
     setCurrentInput(e.target.value);
-    setIdeas(parseIdeas(e.target.value));
+    setIdeas(parsedIdeas);
   };
 
   const validateIdeas = (ideas: IdeaInput[]): boolean => {
+    console.log('Validating ideas:', ideas);
     if (ideas.length === 0) {
       showToast('Please add at least one idea', 'error');
       return false;
     }
 
-    for (const idea of ideas) {
-      if (!idea.title.trim()) {
-        showToast('Each idea must have a title', 'error');
-        return false;
-      }
+    const invalidIdeas = ideas.filter(idea => !idea.title.trim());
+    if (invalidIdeas.length > 0) {
+      console.log('Invalid ideas found:', invalidIdeas);
+      showToast(`Found ${invalidIdeas.length} ideas without titles`, 'error');
+      return false;
     }
 
     return true;
