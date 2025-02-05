@@ -1,40 +1,49 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import Idea from '@/models/Idea';
+import { connectToDatabase } from '@/lib/mongodb';
+import ProductIdea from '@/models/ProductIdea';
+
+type VoteType = 'superLike' | 'up' | 'neutral';
 
 export async function POST(
-  request: Request,
-  context: { params: { id: string } }
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
   try {
-    const { userId, vote } = await request.json();
-    await connectDB();
+    const { type } = await req.json() as { type: VoteType };
 
-    const idea = await Idea.findById(id);
+    if (!type || !['superLike', 'up', 'neutral'].includes(type)) {
+      return NextResponse.json(
+        { message: 'Invalid vote type. Must be superLike, up, or neutral.' },
+        { status: 400 }
+      );
+    }
+
+    await connectToDatabase();
+
+    const idea = await ProductIdea.findOne({ shareableId: params.id });
+    
     if (!idea) {
-      return NextResponse.json({ error: 'Idea not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Idea not found' },
+        { status: 404 }
+      );
     }
 
-    // Get the user's previous vote
-    const previousVote = idea.userVotes.get(userId) as 'up' | 'down' | undefined;
+    // Increment the appropriate vote counter
+    const updateField = `votes.${type}`;
+    await ProductIdea.updateOne(
+      { shareableId: params.id },
+      { $inc: { [updateField]: 1 } }
+    );
 
-    // Remove previous vote if it exists
-    if (previousVote) {
-      idea.votes[previousVote]--;
-      idea.userVotes.delete(userId);
-    }
-
-    // Add new vote unless it's a removal
-    if (vote !== 'remove') {
-      idea.votes[vote]++;
-      idea.userVotes.set(userId, vote);
-    }
-
-    await idea.save();
-    return NextResponse.json(idea);
+    // Fetch and return updated idea
+    const updatedIdea = await ProductIdea.findOne({ shareableId: params.id });
+    return NextResponse.json(updatedIdea);
   } catch (error) {
     console.error('Failed to submit vote:', error);
-    return NextResponse.json({ error: 'Failed to submit vote' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Failed to submit vote' },
+      { status: 500 }
+    );
   }
 } 
