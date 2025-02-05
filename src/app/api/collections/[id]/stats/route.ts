@@ -10,14 +10,19 @@ export async function GET(
   try {
     const { id } = await Promise.resolve(context.params);
     await connectDB();
-    const collection = await Collection.findById(id).populate<{ ideas: IIdea[] }>('ideas');
+    const collection = await Collection.findById(id).populate<{
+      ideas: IIdea[];
+    }>('ideas');
     if (!collection) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 }
+      );
     }
 
     const stats = {
       up: 0,
-      down: 0
+      down: 0,
     };
 
     collection.ideas.forEach((idea: IIdea) => {
@@ -28,6 +33,9 @@ export async function GET(
     return NextResponse.json(stats);
   } catch (error) {
     console.error('Failed to fetch stats:', error);
-    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch stats' },
+      { status: 500 }
+    );
   }
-} 
+}

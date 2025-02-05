@@ -8,10 +8,10 @@ export default function Home() {
           Submit Your Product Idea
         </h1>
         <p className="text-center mb-8 text-gray-600">
-          Share your product idea and get feedback through our simple voting system.
-          No account required!
+          Share your product idea and get feedback through our simple voting
+          system. No account required!
         </p>
-        
+
         <IdeaSubmissionForm />
       </div>
     </main>

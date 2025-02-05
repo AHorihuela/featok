@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     // Create all ideas with the same group ID
     const createdIdeas = await Promise.all(
-      ideas.map((idea, index) => 
+      ideas.map((idea, index) =>
         ProductIdea.create({
           title: idea.title,
           description: idea.description,
@@ -64,4 +64,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

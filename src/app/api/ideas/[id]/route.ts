@@ -10,12 +10,9 @@ export async function GET(
     await connectToDatabase();
 
     const idea = await ProductIdea.findOne({ shareableId: params.id });
-    
+
     if (!idea) {
-      return NextResponse.json(
-        { message: 'Idea not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'Idea not found' }, { status: 404 });
     }
 
     return NextResponse.json(idea);
@@ -26,4 +23,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

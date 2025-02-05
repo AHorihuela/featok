@@ -24,10 +24,10 @@ export default function SwipeInterface({ idea, onVote }: SwipeInterfaceProps) {
 
   const handleVote = async (type: 'up' | 'down') => {
     if (isVoting) return;
-    
+
     setIsVoting(true);
     setDirection(type);
-    
+
     try {
       await onVote(type);
     } catch (error) {
@@ -54,8 +54,10 @@ export default function SwipeInterface({ idea, onVote }: SwipeInterfaceProps) {
         >
           <div className="p-6 space-y-4">
             <h2 className="text-2xl font-bold">{idea.title}</h2>
-            <p className="text-gray-600 dark:text-gray-300">{idea.description}</p>
-            
+            <p className="text-gray-600 dark:text-gray-300">
+              {idea.description}
+            </p>
+
             <div className="flex justify-center space-x-4 pt-4">
               <button
                 onClick={() => handleVote('down')}
@@ -77,4 +79,4 @@ export default function SwipeInterface({ idea, onVote }: SwipeInterfaceProps) {
       </AnimatePresence>
     </div>
   );
-} 
+}

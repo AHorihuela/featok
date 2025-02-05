@@ -15,7 +15,10 @@ export async function GET(
     await connectDB();
     const collection = await Collection.findById(id).populate('ideas');
     if (!collection) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 }
+      );
     }
 
     // Transform ideas to include title and description
@@ -24,15 +27,19 @@ export async function GET(
       return {
         _id: idea._id,
         title,
-        description: descriptionLines.length > 0 ? descriptionLines.join('\n') : undefined,
-        votes: idea.votes
+        description:
+          descriptionLines.length > 0 ? descriptionLines.join('\n') : undefined,
+        votes: idea.votes,
       };
     });
 
     return NextResponse.json(formattedIdeas);
   } catch (error) {
     console.error('Failed to fetch ideas:', error);
-    return NextResponse.json({ error: 'Failed to fetch ideas' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch ideas' },
+      { status: 500 }
+    );
   }
 }
 
@@ -47,14 +54,17 @@ export async function POST(
 
     const collection = await Collection.findById(id);
     if (!collection) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 }
+      );
     }
 
     const idea = await Idea.create({
       text,
       collection: id,
       votes: { up: 0, down: 0 },
-      userVotes: new Map()
+      userVotes: new Map(),
     });
 
     collection.ideas.push(idea._id);
@@ -77,7 +87,10 @@ export async function DELETE(
 
     const collection = await Collection.findById(id).populate('ideas');
     if (!collection) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 }
+      );
     }
 
     // Delete all ideas associated with this collection
@@ -90,7 +103,10 @@ export async function DELETE(
     return NextResponse.json({ message: 'All ideas deleted successfully' });
   } catch (error) {
     console.error('Failed to delete ideas:', error);
-    return NextResponse.json({ error: 'Failed to delete ideas' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to delete ideas' },
+      { status: 500 }
+    );
   }
 }
 
@@ -105,7 +121,10 @@ export async function PUT(
 
     const collection = await Collection.findById(id);
     if (!collection) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 }
+      );
     }
 
     // Delete existing ideas
@@ -115,14 +134,14 @@ export async function PUT(
     // Create new ideas
     const createdIdeas = await Promise.all(
       ideas.map(async (idea: { title: string; description?: string }) => {
-        const text = idea.description 
+        const text = idea.description
           ? `${idea.title}\n${idea.description}`
           : idea.title;
-        
+
         const newIdea = await Idea.create({
           text,
           votes: { up: 0, down: 0 },
-          userVotes: new Map()
+          userVotes: new Map(),
         });
         return newIdea._id;
       })
@@ -135,6 +154,9 @@ export async function PUT(
     return NextResponse.json({ message: 'Ideas updated successfully' });
   } catch (error) {
     console.error('Failed to update ideas:', error);
-    return NextResponse.json({ error: 'Failed to update ideas' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to update ideas' },
+      { status: 500 }
+    );
   }
-} 
+}

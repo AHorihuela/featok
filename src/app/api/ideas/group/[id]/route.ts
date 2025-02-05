@@ -10,7 +10,7 @@ export async function GET(
     await connectToDatabase();
 
     const ideas = await ProductIdea.find({ groupId: params.id });
-    
+
     if (!ideas || ideas.length === 0) {
       return NextResponse.json(
         { message: 'No ideas found in this group' },
@@ -26,4 +26,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

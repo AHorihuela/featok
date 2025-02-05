@@ -9,8 +9,9 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="fixed top-4 right-4 p-2 rounded-full bg-opacity-20 backdrop-blur-sm transition-colors duration-200 hover:bg-opacity-30"
-      style={{ 
-        backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+      style={{
+        backgroundColor:
+          theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
       }}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
@@ -33,4 +34,4 @@ export function ThemeToggle() {
       )}
     </button>
   );
-} 
+}

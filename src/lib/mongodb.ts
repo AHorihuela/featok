@@ -20,4 +20,4 @@ export async function connectToDatabase() {
     console.error('Error connecting to MongoDB:', error);
     throw error;
   }
-} 
+}

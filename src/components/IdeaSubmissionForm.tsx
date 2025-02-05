@@ -38,11 +38,15 @@ export default function IdeaSubmissionForm() {
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + 'px';
     }
   }, [currentInput]);
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' = 'success'
+  ) => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
@@ -52,12 +56,15 @@ export default function IdeaSubmissionForm() {
 
   const parseIdeas = (text: string): IdeaInput[] => {
     // Split by double newline to separate ideas
-    return text.split(/\n\s*\n/).filter(block => block.trim()).map(block => {
-      const lines = block.split('\n');
-      const title = lines[0].replace(/^[-*•]?\s*/, '').trim(); // Remove any list markers
-      const description = lines.slice(1).join('\n').trim();
-      return { title, description: description || title }; // Use title as description if none provided
-    });
+    return text
+      .split(/\n\s*\n/)
+      .filter(block => block.trim())
+      .map(block => {
+        const lines = block.split('\n');
+        const title = lines[0].replace(/^[-*•]?\s*/, '').trim(); // Remove any list markers
+        const description = lines.slice(1).join('\n').trim();
+        return { title, description: description || title }; // Use title as description if none provided
+      });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -71,7 +78,7 @@ export default function IdeaSubmissionForm() {
       showToast('Please add at least one idea', 'error');
       return;
     }
-    
+
     const creatorId = localStorage.getItem(CREATOR_ID_KEY);
     if (!creatorId) {
       showToast('Failed to identify creator', 'error');
@@ -90,12 +97,17 @@ export default function IdeaSubmissionForm() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
         // Store the group ID in localStorage for editing later
-        const createdGroups = JSON.parse(localStorage.getItem('featok_created_groups') || '[]');
+        const createdGroups = JSON.parse(
+          localStorage.getItem('featok_created_groups') || '[]'
+        );
         createdGroups.push(data.groupId);
-        localStorage.setItem('featok_created_groups', JSON.stringify(createdGroups));
+        localStorage.setItem(
+          'featok_created_groups',
+          JSON.stringify(createdGroups)
+        );
 
         showToast('Ideas submitted successfully!');
         // Wait for the toast to be visible before redirecting
@@ -106,7 +118,10 @@ export default function IdeaSubmissionForm() {
         throw new Error(data.message || 'Something went wrong');
       }
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Failed to submit ideas', 'error');
+      showToast(
+        error instanceof Error ? error.message : 'Failed to submit ideas',
+        'error'
+      );
       console.error('Submit error:', error);
     } finally {
       setIsSubmitting(false);
@@ -119,7 +134,8 @@ export default function IdeaSubmissionForm() {
         <div className="mb-4">
           <h3 className="text-lg font-medium mb-2">Quick Add Ideas</h3>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Enter one idea per block, separated by blank lines. First line is the title, following lines are the description.
+            Enter one idea per block, separated by blank lines. First line is
+            the title, following lines are the description.
           </p>
         </div>
 
@@ -156,7 +172,7 @@ This is the description for idea 3"
           <h4 className="text-sm font-medium mb-2">Preview:</h4>
           <div className="space-y-2">
             {ideas.map((idea, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-white dark:bg-gray-800 rounded p-3 text-sm"
               >
@@ -192,8 +208,8 @@ This is the description for idea 3"
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className={`px-4 py-2 rounded-lg shadow-lg ${
-                toast.type === 'success' 
-                  ? 'bg-green-500 text-white' 
+                toast.type === 'success'
+                  ? 'bg-green-500 text-white'
                   : 'bg-red-500 text-white'
               }`}
             >
@@ -204,4 +220,4 @@ This is the description for idea 3"
       </div>
     </form>
   );
-} 
+}

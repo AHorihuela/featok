@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { type } = await req.json() as { type: VoteType };
+    const { type } = (await req.json()) as { type: VoteType };
 
     if (!type || !['superLike', 'up', 'neutral'].includes(type)) {
       return NextResponse.json(
@@ -21,12 +21,9 @@ export async function POST(
     await connectToDatabase();
 
     const idea = await ProductIdea.findOne({ shareableId: params.id });
-    
+
     if (!idea) {
-      return NextResponse.json(
-        { message: 'Idea not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'Idea not found' }, { status: 404 });
     }
 
     // Increment the appropriate vote counter
@@ -46,4 +43,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

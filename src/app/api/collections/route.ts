@@ -8,7 +8,10 @@ export async function GET() {
     const collections = await Collection.find({}).sort({ createdAt: -1 });
     return NextResponse.json(collections);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch collections' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch collections' },
+      { status: 500 }
+    );
   }
 }
 
@@ -19,6 +22,9 @@ export async function POST(request: Request) {
     const collection = await Collection.create({ name });
     return NextResponse.json(collection, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create collection' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create collection' },
+      { status: 500 }
+    );
   }
-} 
+}

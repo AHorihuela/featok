@@ -23,7 +23,7 @@ const ProductIdeaSchema = new mongoose.Schema({
     neutral: {
       type: Number,
       default: 0,
-    }
+    },
   },
   shareableId: {
     type: String,
@@ -46,7 +46,8 @@ const ProductIdeaSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 
-export default mongoose.models.ProductIdea || mongoose.model('ProductIdea', ProductIdeaSchema); 
+export default mongoose.models.ProductIdea ||
+  mongoose.model('ProductIdea', ProductIdeaSchema);
