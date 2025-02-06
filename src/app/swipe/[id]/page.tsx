@@ -285,22 +285,18 @@ export default function SwipePage({ params }: PageProps) {
               dragElastic: 0.7,
               onDrag: handleDrag,
               onDragEnd: handleDragEnd,
-              onTouchMove: (e: TouchEvent) => {
-                if ((e.currentTarget as HTMLElement).style.touchAction !== 'none') {
-                  (e.currentTarget as HTMLElement).style.touchAction = 'none';
-                }
+              whileDrag: {
+                cursor: "grabbing",
+                scale: 1.02,
               },
-              onTouchStart: () => {
-                setShowInstructions(false);
-              },
-              onTouchEnd: (e: TouchEvent) => {
-                (e.currentTarget as HTMLElement).style.touchAction = 'auto';
-              },
-              animate: controls,
               style: { 
                 transformOrigin: "bottom center",
                 transform: `perspective(1000px)`,
-              }
+                cursor: "grab",
+                touchAction: "none"
+              },
+              animate: controls,
+              onHoverStart: () => setShowInstructions(false),
             }}
           />
         </div>
