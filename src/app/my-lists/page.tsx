@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AppMenu } from '@/components/ui/app-menu';
+import { IdeaStats } from '@/components/ui/idea-stats';
 
 interface IdeaGroup {
   groupId: string;
@@ -23,6 +24,7 @@ export default function MyLists() {
   const [groups, setGroups] = useState<IdeaGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -107,43 +109,47 @@ export default function MyLists() {
                 key={group.groupId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold mb-2">
-                      {group.ideas[0].title}
-                      {group.ideas.length > 1 && ` + ${group.ideas.length - 1} more`}
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      Created {new Date(group.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(group.groupId)}
-                      className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => router.push(`/swipe/${group.groupId}`)}
-                      className="px-4 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-200"
-                    >
-                      View Results
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 text-sm text-gray-600">
-                  {group.ideas.slice(0, 3).map(idea => (
-                    <div key={idea.title} className="space-y-1">
-                      <p className="font-medium truncate">{idea.title}</p>
-                      <div className="text-xs">
-                        🔥 {idea.votes.superLike} | ✨ {idea.votes.up} | 😐 {idea.votes.neutral}
-                      </div>
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h2 className="text-xl font-semibold mb-2">
+                        {group.ideas[0].title}
+                        {group.ideas.length > 1 && ` + ${group.ideas.length - 1} more`}
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        Created {new Date(group.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
-                  ))}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(group.groupId)}
+                        className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setExpandedGroup(
+                          expandedGroup === group.groupId ? null : group.groupId
+                        )}
+                        className="px-4 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-200"
+                      >
+                        {expandedGroup === group.groupId ? 'Hide Stats' : 'View Stats'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedGroup === group.groupId && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+                    >
+                      <IdeaStats ideas={group.ideas} />
+                    </motion.div>
+                  )}
                 </div>
               </motion.div>
             ))
