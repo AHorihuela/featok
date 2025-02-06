@@ -8,16 +8,12 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed top-4 right-4 p-2 rounded-full bg-opacity-20 backdrop-blur-sm transition-colors duration-200 hover:bg-opacity-30"
-      style={{
-        backgroundColor:
-          theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-      }}
+      className="fixed bottom-4 left-20 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       {theme === 'dark' ? (
         <svg
-          className="w-6 h-6 text-yellow-300"
+          className="w-5 h-5 text-yellow-500"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
@@ -25,7 +21,7 @@ export function ThemeToggle() {
         </svg>
       ) : (
         <svg
-          className="w-6 h-6 text-gray-900"
+          className="w-5 h-5 text-gray-700"
           fill="currentColor"
           viewBox="0 0 24 24"
         >

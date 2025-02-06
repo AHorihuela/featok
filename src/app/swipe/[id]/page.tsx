@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { motion, PanInfo, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { MenuButton } from '@/components/ui/menu-button';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -386,6 +387,9 @@ export default function SwipePage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Menu Button */}
+        <MenuButton groupId={id} />
+
         {/* Card Container */}
         <div className="h-[calc(100vh-320px)] relative flex items-center justify-center">
           <motion.div
@@ -395,7 +399,6 @@ export default function SwipePage({ params }: PageProps) {
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             onTouchStart={(e) => {
-              e.preventDefault();
               e.currentTarget.style.touchAction = 'none';
               setShowInstructions(false);
             }}
@@ -407,6 +410,7 @@ export default function SwipePage({ params }: PageProps) {
             style={{ 
               transformOrigin: "bottom center",
               transform: `perspective(1000px)`,
+              touchAction: 'none'
             }}
           >
             <motion.div
@@ -414,6 +418,7 @@ export default function SwipePage({ params }: PageProps) {
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-10 touch-none min-h-[420px] flex flex-col"
+              style={{ touchAction: 'none' }}
               animate={{
                 rotate: swipeDirection === 'superLike' 
                   ? 15 
@@ -465,19 +470,8 @@ export default function SwipePage({ params }: PageProps) {
           </motion.div>
         </div>
 
+        {/* Remove the old navigation links */}
         <div className="mt-10 flex justify-center gap-12">
-          <a
-            href={`/edit/${id}`}
-            className="text-blue-500 hover:text-blue-600 text-lg font-medium flex items-center gap-2"
-          >
-            ✏️ Edit List
-          </a>
-          <a
-            href="/my-lists"
-            className="text-gray-600 hover:text-gray-700 text-lg font-medium flex items-center gap-2"
-          >
-            📋 My Lists
-          </a>
         </div>
       </div>
 
@@ -509,7 +503,7 @@ export default function SwipePage({ params }: PageProps) {
         {lastVote && (
           <motion.button
             onClick={handleUndo}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg rounded-full px-6 py-3 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-lg rounded-full px-6 py-3 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
@@ -517,7 +511,7 @@ export default function SwipePage({ params }: PageProps) {
             whileTap={{ scale: 0.98 }}
           >
             <span className="text-blue-500">↩️</span>
-            <span className="font-medium text-gray-700 dark:text-gray-200">Undo Last Vote</span>
+            <span className="font-medium text-gray-700 dark:text-gray-200">Undo</span>
           </motion.button>
         )}
       </AnimatePresence>
