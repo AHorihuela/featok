@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AppMenu } from '@/components/ui/app-menu';
 import { IdeaStats } from '@/components/ui/idea-stats';
-import { Link, Check } from 'lucide-react';
+import { Link, Check, Trash2 } from 'lucide-react';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 interface IdeaGroup {
   groupId: string;
@@ -27,6 +28,7 @@ export default function MyLists() {
   const [error, setError] = useState<string | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -68,6 +70,32 @@ export default function MyLists() {
       setCopiedId(groupId);
       setTimeout(() => setCopiedId(null), 2000);
     });
+  };
+
+  const handleDelete = async (groupId: string) => {
+    const creatorId = localStorage.getItem('featok_creator_id');
+    if (!creatorId) return;
+
+    try {
+      const response = await fetch(`/api/ideas/group/${groupId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ creatorId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete list');
+      }
+
+      // Remove the deleted group from state
+      setGroups(prevGroups => prevGroups.filter(group => group.groupId !== groupId));
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setDeleteGroupId(null);
+    }
   };
 
   if (isLoading) {
@@ -158,6 +186,13 @@ export default function MyLists() {
                       >
                         {expandedGroup === group.groupId ? 'Hide Stats' : 'View Stats'}
                       </button>
+                      <button
+                        onClick={() => setDeleteGroupId(group.groupId)}
+                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-200 flex items-center justify-center"
+                        aria-label="Delete list"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
 
@@ -178,6 +213,16 @@ export default function MyLists() {
         </div>
 
         <AppMenu />
+
+        <ConfirmModal
+          isOpen={deleteGroupId !== null}
+          title="Delete List"
+          message="Are you sure you want to delete this list? This action cannot be undone."
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          onConfirm={() => deleteGroupId && handleDelete(deleteGroupId)}
+          onCancel={() => setDeleteGroupId(null)}
+        />
       </div>
     </main>
   );
