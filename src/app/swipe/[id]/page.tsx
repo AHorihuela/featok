@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { MenuButton } from '@/components/ui/menu-button';
 import { IdeaCard } from '@/components/ui/idea-card';
@@ -11,6 +11,7 @@ import { ProductIdea } from '@/types/ideas';
 import { LoadingAnimation } from '@/components/ui/loading-animation';
 import { VoteToast } from '@/components/ui/vote-toast';
 import { UndoButton } from '@/components/ui/undo-button';
+import { SwipeInstructions } from '@/components/ui/swipe-instructions';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -163,6 +164,8 @@ export default function SwipePage({ params }: PageProps) {
         {isCreator && <MenuButton groupId={id} />}
 
         <div className="h-[calc(100vh-320px)] relative flex items-center justify-center">
+          <SwipeInstructions show={showInstructions} />
+          
           <motion.div
             drag={!voteConfirmation}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
