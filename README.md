@@ -36,9 +36,9 @@ A modern web application for collecting and voting on product ideas, built with 
    npm install
    ```
 
-3. Create a `.env.local` file with your MongoDB connection string:
+3. Create a `.env` file with your MongoDB URI:
    ```
-   MONGODB_URI=your_mongodb_connection_string
+   MONGODB_URI=your_mongodb_uri_here
    ```
 
 4. Run the development server:
@@ -47,6 +47,32 @@ A modern web application for collecting and voting on product ideas, built with 
    ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment
+
+This project is configured for deployment on Vercel:
+
+1. Install Vercel CLI:
+   ```bash
+   npm i -g vercel
+   ```
+
+2. Login to Vercel:
+   ```bash
+   vercel login
+   ```
+
+3. Deploy:
+   ```bash
+   vercel
+   ```
+
+4. Add your MongoDB URI as an environment variable in the Vercel dashboard:
+   - Go to your project settings
+   - Navigate to Environment Variables
+   - Add MONGODB_URI with your connection string
+
+The app will be automatically deployed on push to the main branch.
 
 ## Deployment Recommendations
 
