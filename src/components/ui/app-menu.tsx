@@ -34,7 +34,7 @@ export function AppMenu({ groupId }: AppMenuProps) {
         if (!response.ok) return;
         
         const data = await response.json();
-        if (data.length > 0 && data[0].creatorId === creatorId) {
+        if (data.ideas?.[0]?.creatorId === creatorId) {
           setIsCreator(true);
         }
       } catch (error) {

@@ -18,13 +18,15 @@ interface PageProps {
 }
 
 function shuffleArray<T>(array: T[]): T[] {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return newArray;
+  return shuffled;
 }
+
+const BATCH_SIZE = 5; // Number of ideas to load at a time
 
 export default function SwipePage({ params }: PageProps) {
   const { id } = use(params);
@@ -32,7 +34,10 @@ export default function SwipePage({ params }: PageProps) {
   const [ideas, setIdeas] = useState<ProductIdea[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
   const controls = useAnimation();
   const [showInstructions, setShowInstructions] = useState(true);
   const [buttonVoteType, setButtonVoteType] = useState<'superLike' | 'up' | 'neutral' | null>(null);
@@ -43,7 +48,42 @@ export default function SwipePage({ params }: PageProps) {
     lastVote,
     handleVote,
     handleUndo,
+    isVoting,
+    hasRetries,
   } = useVoting(ideas, setIdeas);
+
+  // Load more ideas when we're getting close to the end
+  useEffect(() => {
+    if (currentIndex >= ideas.length - 2 && hasMore && !isLoadingMore) {
+      loadMoreIdeas();
+    }
+  }, [currentIndex, ideas.length, hasMore, isLoadingMore]);
+
+  const loadMoreIdeas = async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const response = await fetch(`/api/ideas/group/${id}?offset=${offset}&limit=${BATCH_SIZE}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch more ideas');
+      }
+      const data = await response.json();
+      
+      if (!data.ideas) {
+        throw new Error('Invalid response format');
+      }
+
+      setHasMore(data.pagination.hasMore);
+      setIdeas(prev => [...prev, ...shuffleArray(data.ideas)]);
+      setOffset(prev => prev + data.ideas.length);
+    } catch (error) {
+      console.error('Failed to load more ideas:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load ideas');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const {
     swipeDirection,
@@ -64,8 +104,35 @@ export default function SwipePage({ params }: PageProps) {
 
   useEffect(() => {
     const creatorId = localStorage.getItem('featok_creator_id');
-    fetchIdeas(creatorId);
+    fetchInitialIdeas(creatorId);
   }, [id]);
+
+  const fetchInitialIdeas = async (creatorId: string | null) => {
+    try {
+      const response = await fetch(`/api/ideas/group/${id}?offset=0&limit=${BATCH_SIZE}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch ideas');
+      }
+      const data = await response.json();
+      
+      if (!data.ideas) {
+        throw new Error('Invalid response format');
+      }
+      
+      setHasMore(data.pagination.hasMore);
+      setIdeas(shuffleArray(data.ideas));
+      setOffset(data.ideas.length);
+      
+      if (creatorId && data.ideas.length > 0 && data.ideas[0].creatorId === creatorId) {
+        setIsCreator(true);
+      }
+    } catch (error) {
+      setError('Failed to load ideas. Please try again later.');
+      console.error('Fetch error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Add a function to track views
   const trackView = async (ideaId: string) => {
@@ -84,28 +151,6 @@ export default function SwipePage({ params }: PageProps) {
       trackView(ideas[currentIndex].shareableId);
     }
   }, [currentIndex, ideas]);
-
-  const fetchIdeas = async (creatorId: string | null) => {
-    try {
-      const response = await fetch(`/api/ideas/group/${id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch ideas');
-      }
-      const data = await response.json();
-      
-      // Randomize the order of ideas before setting them
-      setIdeas(shuffleArray(data));
-      
-      if (creatorId && data.length > 0 && data[0].creatorId === creatorId) {
-        setIsCreator(true);
-      }
-    } catch (error) {
-      setError('Failed to load ideas. Please try again later.');
-      console.error('Fetch error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const getBackgroundColor = () => {
     if (swipeDirection === 'superLike' || buttonVoteType === 'superLike') {
@@ -194,18 +239,31 @@ export default function SwipePage({ params }: PageProps) {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
             Vote on Ideas
           </h1>
-          <div className="flex items-center gap-2 text-lg">
+          <div className="flex items-center gap-2">
             <span className="font-medium text-gray-400">{currentIndex + 1}</span>
             <span className="text-gray-300">/</span>
-            <span className="font-medium text-gray-500">{ideas.length}</span>
+            <span className="font-medium text-gray-500">
+              {hasMore ? '∞' : ideas.length}
+            </span>
+            {hasRetries && (
+              <span className="text-yellow-500 text-sm ml-2">
+                Retrying votes...
+              </span>
+            )}
           </div>
         </div>
 
         <SwipeInstructions show={showInstructions} />
 
         <div className="h-[calc(100vh-320px)] relative flex items-center justify-center mt-8">
+          {isLoadingMore && currentIndex === ideas.length - 1 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-3xl">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+          
           <motion.div
-            drag={!voteConfirmation}
+            drag={!voteConfirmation && !isVoting}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
             dragElastic={0.7}
             onDrag={handleDrag}
@@ -236,6 +294,7 @@ export default function SwipePage({ params }: PageProps) {
                 await handleVote(type);
                 setButtonVoteType(null);
               }}
+              isVoting={isVoting}
             />
           </motion.div>
         </div>

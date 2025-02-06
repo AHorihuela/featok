@@ -43,20 +43,20 @@ export default function EditIdeas({ params }: PageProps) {
       const data = await response.json();
 
       // Verify creator
-      if (data[0]?.creatorId !== creatorId) {
+      if (!data.ideas?.[0]?.creatorId || data.ideas[0].creatorId !== creatorId) {
         setError('You do not have permission to edit this list');
         return;
       }
 
       // Convert to text format
-      const textContent = data
+      const textContent = data.ideas
         .sort((a: ProductIdea, b: ProductIdea) => a.order - b.order)
         .map((idea: ProductIdea) => `${idea.title}\n${idea.description}`)
         .join('\n\n');
 
       setCurrentInput(textContent);
       setIdeas(
-        data.map((idea: ProductIdea) => ({
+        data.ideas.map((idea: ProductIdea) => ({
           title: idea.title,
           description: idea.description,
         }))
