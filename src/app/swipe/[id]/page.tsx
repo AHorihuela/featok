@@ -17,6 +17,15 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
 export default function SwipePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
@@ -61,7 +70,9 @@ export default function SwipePage({ params }: PageProps) {
         throw new Error('Failed to fetch ideas');
       }
       const data = await response.json();
-      setIdeas(data.sort((a: ProductIdea, b: ProductIdea) => a.order - b.order));
+      
+      // Randomize the order of ideas before setting them
+      setIdeas(shuffleArray(data));
       
       if (creatorId && data.length > 0 && data[0].creatorId === creatorId) {
         setIsCreator(true);

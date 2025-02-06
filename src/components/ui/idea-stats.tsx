@@ -26,8 +26,22 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [copied, setCopied] = useState(false);
 
+  const calculateVoteRatios = (idea: IdeaStats) => {
+    const totalVotes = idea.votes.superLike + idea.votes.up + idea.votes.neutral;
+    if (totalVotes === 0) return { superLike: 0, up: 0, neutral: 0, total: 0 };
+    
+    return {
+      superLike: idea.votes.superLike / totalVotes,
+      up: idea.votes.up / totalVotes,
+      neutral: idea.votes.neutral / totalVotes,
+      total: totalVotes
+    };
+  };
+
   const calculateScore = (idea: IdeaStats) => {
-    return (idea.votes.superLike * 3) + (idea.votes.up * 2) + (idea.votes.neutral * 1);
+    const ratios = calculateVoteRatios(idea);
+    // Weight the ratios: superLike(3), up(2), neutral(1)
+    return (ratios.superLike * 3) + (ratios.up * 2) + (ratios.neutral * 1);
   };
 
   const calculateTotal = (idea: IdeaStats) => {
@@ -40,16 +54,22 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
 
     switch (sortBy) {
       case 'superLike':
-        aValue = a.votes.superLike;
-        bValue = b.votes.superLike;
+        const aRatioSuper = calculateVoteRatios(a).superLike;
+        const bRatioSuper = calculateVoteRatios(b).superLike;
+        aValue = aRatioSuper;
+        bValue = bRatioSuper;
         break;
       case 'up':
-        aValue = a.votes.up;
-        bValue = b.votes.up;
+        const aRatioUp = calculateVoteRatios(a).up;
+        const bRatioUp = calculateVoteRatios(b).up;
+        aValue = aRatioUp;
+        bValue = bRatioUp;
         break;
       case 'neutral':
-        aValue = a.votes.neutral;
-        bValue = b.votes.neutral;
+        const aRatioNeutral = calculateVoteRatios(a).neutral;
+        const bRatioNeutral = calculateVoteRatios(b).neutral;
+        aValue = aRatioNeutral;
+        bValue = bRatioNeutral;
         break;
       case 'total':
         aValue = calculateTotal(a);
@@ -217,6 +237,7 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
       <div className="space-y-4">
         <AnimatePresence>
           {sortedIdeas.map((idea, index) => {
+            const ratios = calculateVoteRatios(idea);
             const score = calculateScore(idea);
             const total = calculateTotal(idea);
             const scorePercentage = (score / (maxScore || 1)) * 100;
@@ -238,7 +259,6 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
                 </div>
 
                 <div className="space-y-2">
-                  {/* Score Bar */}
                   <div className="relative h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
@@ -247,23 +267,25 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
                     />
                   </div>
 
-                  {/* Vote Distribution */}
                   <div className="flex gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <span className="text-green-500">❤️</span>
-                      <span>{idea.votes.superLike}</span>
+                      <span>{(ratios.superLike * 100).toFixed(1)}%</span>
+                      <span className="text-xs text-gray-500">({idea.votes.superLike})</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-yellow-500">😊</span>
-                      <span>{idea.votes.up}</span>
+                      <span>{(ratios.up * 100).toFixed(1)}%</span>
+                      <span className="text-xs text-gray-500">({idea.votes.up})</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-red-500">🤷</span>
-                      <span>{idea.votes.neutral}</span>
+                      <span>{(ratios.neutral * 100).toFixed(1)}%</span>
+                      <span className="text-xs text-gray-500">({idea.votes.neutral})</span>
                     </div>
                     <div className="ml-auto flex items-center gap-2">
-                      <span className="text-sm text-gray-500">Score:</span>
-                      <span className="font-medium">{score}</span>
+                      <span className="text-sm text-gray-500">Total Votes:</span>
+                      <span className="font-medium">{total}</span>
                     </div>
                   </div>
                 </div>
