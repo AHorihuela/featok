@@ -164,42 +164,53 @@ export default function IdeaSubmissionForm() {
           ref={textareaRef}
           value={currentInput}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none min-h-[200px]"
-          placeholder="Product Idea 1
-This is the description for idea 1
+          className="w-full px-6 py-4 rounded-2xl border border-gray-200 dark:border-gray-700 
+            focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+            font-mono text-base leading-relaxed resize-none min-h-[300px]
+            bg-white dark:bg-gray-800 
+            placeholder:text-gray-400 dark:placeholder:text-gray-500
+            shadow-sm hover:shadow-md transition-shadow duration-200"
+          placeholder="AI-Powered Recipe Generator
+An app that generates personalized recipes based on available ingredients and dietary preferences.
 
-Product Idea 2
-This is the description for idea 2
+Smart Home Energy Monitor
+A device that tracks and optimizes home energy usage in real-time using AI.
 
-Product Idea 3
-This is the description for idea 3"
+Local Event Discovery App
+App that curates personalized local event recommendations based on user interests and past activities."
+          spellCheck="false"
+          autoComplete="off"
         />
 
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-          <span>{ideas.length} ideas</span>
-          <button
-            type="button"
-            onClick={() => setCurrentInput('')}
-            className="text-red-500 hover:text-red-600"
-            disabled={!currentInput || isSubmitting}
-          >
-            Clear All
-          </button>
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <span className="font-medium text-gray-600 dark:text-gray-300">
+            {ideas.length} {ideas.length === 1 ? 'idea' : 'ideas'}
+          </span>
+          {currentInput && (
+            <button
+              type="button"
+              onClick={() => setCurrentInput('')}
+              className="text-red-500 hover:text-red-600 font-medium transition-colors duration-200"
+              disabled={isSubmitting}
+            >
+              Clear All
+            </button>
+          )}
         </div>
       </div>
 
       {ideas.length > 0 && (
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-          <h4 className="text-sm font-medium mb-2">Preview:</h4>
-          <div className="space-y-2">
+        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 mt-6">
+          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-4">Preview:</h4>
+          <div className="space-y-3">
             {ideas.map((idea, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded p-3 text-sm"
+                className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
               >
-                <div className="font-medium">{idea.title}</div>
+                <div className="font-medium text-gray-900 dark:text-white mb-2">{idea.title}</div>
                 {idea.description !== idea.title && (
-                  <div className="text-gray-600 dark:text-gray-300 mt-1 text-xs">
+                  <div className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                     {idea.description}
                   </div>
                 )}
@@ -209,13 +220,16 @@ This is the description for idea 3"
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-6">
         <button
           type="submit"
           disabled={ideas.length === 0 || isSubmitting}
-          className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl 
+            hover:from-blue-600 hover:to-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
+            disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium
+            shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30"
         >
-          {isSubmitting ? 'Submitting...' : `Submit ${ideas.length} Ideas`}
+          {isSubmitting ? 'Submitting...' : `Submit ${ideas.length} ${ideas.length === 1 ? 'Idea' : 'Ideas'}`}
         </button>
       </div>
 

@@ -26,7 +26,7 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-const BATCH_SIZE = 5; // Number of ideas to load at a time
+const BATCH_SIZE = 50; // Increased to load more ideas at once
 
 export default function SwipePage({ params }: PageProps) {
   const { id } = use(params);
@@ -250,7 +250,7 @@ export default function SwipePage({ params }: PageProps) {
             <span className="font-medium text-gray-400">{currentIndex + 1}</span>
             <span className="text-gray-300">/</span>
             <span className="font-medium text-gray-500">
-              {hasMore ? '∞' : ideas.length}
+              {ideas.length}
             </span>
             {hasRetries && (
               <span className="text-yellow-500 text-sm ml-2">

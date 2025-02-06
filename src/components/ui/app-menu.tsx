@@ -70,6 +70,13 @@ export function AppMenu({ groupId }: AppMenuProps) {
       ];
     }
 
+    // If we're on the homepage
+    if (pathname === '/') {
+      return [
+        { icon: "📋", label: "My Lists", href: "/my-lists" },
+      ];
+    }
+
     // Default - show nothing if user isn't a creator or on a relevant page
     return [];
   };
