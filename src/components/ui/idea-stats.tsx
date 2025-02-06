@@ -12,6 +12,7 @@ interface IdeaStats {
     up: number;
     neutral: number;
   };
+  views: number;
 }
 
 interface IdeaStatsProps {
@@ -284,7 +285,10 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
                       <span className="text-xs text-gray-500">({idea.votes.neutral})</span>
                     </div>
                     <div className="ml-auto flex items-center gap-2">
-                      <span className="text-sm text-gray-500">Total Votes:</span>
+                      <span className="text-sm text-gray-500">Views:</span>
+                      <span className="font-medium">{idea.views || 0}</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-sm text-gray-500">Votes:</span>
                       <span className="font-medium">{total}</span>
                     </div>
                   </div>

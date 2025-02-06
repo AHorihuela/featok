@@ -63,6 +63,24 @@ export default function SwipePage({ params }: PageProps) {
     fetchIdeas(creatorId);
   }, [id]);
 
+  // Add a function to track views
+  const trackView = async (ideaId: string) => {
+    try {
+      await fetch(`/api/ideas/${ideaId}/view`, {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Failed to track view:', error);
+    }
+  };
+
+  // Add effect to track view when currentIndex changes
+  useEffect(() => {
+    if (ideas[currentIndex]) {
+      trackView(ideas[currentIndex].shareableId);
+    }
+  }, [currentIndex, ideas]);
+
   const fetchIdeas = async (creatorId: string | null) => {
     try {
       const response = await fetch(`/api/ideas/group/${id}`);

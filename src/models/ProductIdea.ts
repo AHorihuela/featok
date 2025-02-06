@@ -25,6 +25,10 @@ const ProductIdeaSchema = new mongoose.Schema({
       default: 0,
     },
   },
+  views: {
+    type: Number,
+    default: 0,
+  },
   shareableId: {
     type: String,
     required: true,
