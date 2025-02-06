@@ -150,7 +150,7 @@ export default function SwipePage({ params }: PageProps) {
       }}
     >
       <div className="max-w-lg mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-4">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
             Vote on Ideas
           </h1>
@@ -161,11 +161,11 @@ export default function SwipePage({ params }: PageProps) {
           </div>
         </div>
 
+        <SwipeInstructions show={showInstructions} />
+
         {isCreator && <MenuButton groupId={id} />}
 
-        <div className="h-[calc(100vh-320px)] relative flex items-center justify-center">
-          <SwipeInstructions show={showInstructions} />
-          
+        <div className="h-[calc(100vh-320px)] relative flex items-center justify-center mt-8">
           <motion.div
             drag={!voteConfirmation}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}

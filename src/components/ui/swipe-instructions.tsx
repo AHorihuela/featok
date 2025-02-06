@@ -12,42 +12,39 @@ export function SwipeInstructions({ show }: SwipeInstructionsProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="fixed top-20 left-0 right-0 flex justify-center items-center z-50 pointer-events-none px-4"
+          className="flex justify-center items-center mb-6"
         >
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-gray-100 dark:border-gray-700">
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-3">
-              Swipe to vote
-            </p>
-            <div className="flex items-center justify-center gap-8 text-base">
-              <div className="flex flex-col items-center gap-2">
-                <motion.div
-                  animate={{ x: [-8, 0, -8] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-2xl text-red-500"
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl px-6 py-3 shadow-sm">
+            <div className="flex items-center gap-8">
+              <div className="flex flex-col items-center">
+                <motion.span
+                  animate={{ x: [-5, 0, -5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-red-500 text-lg"
                 >
                   ←
-                </motion.div>
-                <span className="text-red-500 font-medium">Meh</span>
+                </motion.span>
+                <span className="text-red-500">Meh</span>
               </div>
-              <div className="flex flex-col items-center gap-2">
-                <motion.div
-                  animate={{ y: [-8, 0, -8] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-2xl text-yellow-500"
+              <div className="flex flex-col items-center">
+                <motion.span
+                  animate={{ y: [-5, 0, -5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-yellow-500 text-lg"
                 >
                   ↑
-                </motion.div>
-                <span className="text-yellow-600 font-medium">Neat</span>
+                </motion.span>
+                <span className="text-yellow-500">Neat</span>
               </div>
-              <div className="flex flex-col items-center gap-2">
-                <motion.div
-                  animate={{ x: [8, 0, 8] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-2xl text-green-500"
+              <div className="flex flex-col items-center">
+                <motion.span
+                  animate={{ x: [5, 0, 5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-green-500 text-lg"
                 >
                   →
-                </motion.div>
-                <span className="text-green-500 font-medium">Love</span>
+                </motion.span>
+                <span className="text-green-500">Love</span>
               </div>
             </div>
           </div>
