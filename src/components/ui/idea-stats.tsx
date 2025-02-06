@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Download, Link, Check } from 'lucide-react';
 
 interface IdeaStats {
   title: string;
@@ -15,13 +16,15 @@ interface IdeaStats {
 
 interface IdeaStatsProps {
   ideas: IdeaStats[];
+  groupId: string;
 }
 
 type SortKey = 'superLike' | 'up' | 'neutral' | 'total' | 'score';
 
-function IdeaStatsComponent({ ideas }: IdeaStatsProps) {
+function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
   const [sortBy, setSortBy] = useState<SortKey>('score');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [copied, setCopied] = useState(false);
 
   const calculateScore = (idea: IdeaStats) => {
     return (idea.votes.superLike * 3) + (idea.votes.up * 2) + (idea.votes.neutral * 1);
@@ -73,59 +76,142 @@ function IdeaStatsComponent({ ideas }: IdeaStatsProps) {
   const maxScore = Math.max(...ideas.map(calculateScore));
   const maxVotes = Math.max(...ideas.map(calculateTotal));
 
+  const handleDownload = () => {
+    // Create CSV headers
+    const headers = [
+      'Title',
+      'Description',
+      'Love Votes',
+      'Neat Votes',
+      'Meh Votes',
+      'Total Votes',
+      'Score'
+    ];
+
+    // Convert ideas to CSV rows
+    const rows = sortedIdeas.map(idea => [
+      idea.title,
+      idea.description,
+      idea.votes.superLike,
+      idea.votes.up,
+      idea.votes.neutral,
+      calculateTotal(idea),
+      calculateScore(idea)
+    ]);
+
+    // Combine headers and rows with proper newlines
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => 
+        row.map(cell => 
+          typeof cell === 'string' 
+            ? `"${cell.replace(/"/g, '""')}"` 
+            : cell
+        ).join(',')
+      )
+    ].join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'idea_voting_results.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url); // Clean up the URL object
+  };
+
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/swipe/${groupId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        <button
-          onClick={() => toggleSort('score')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-            sortBy === 'score'
-              ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200'
-              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-          }`}
-        >
-          Score {sortBy === 'score' && (sortOrder === 'desc' ? '↓' : '↑')}
-        </button>
-        <button
-          onClick={() => toggleSort('superLike')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-            sortBy === 'superLike'
-              ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200'
-              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-          }`}
-        >
-          Love {sortBy === 'superLike' && (sortOrder === 'desc' ? '↓' : '↑')}
-        </button>
-        <button
-          onClick={() => toggleSort('up')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-            sortBy === 'up'
-              ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200'
-              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-          }`}
-        >
-          Neat {sortBy === 'up' && (sortOrder === 'desc' ? '↓' : '↑')}
-        </button>
-        <button
-          onClick={() => toggleSort('neutral')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-            sortBy === 'neutral'
-              ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200'
-              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-          }`}
-        >
-          Meh {sortBy === 'neutral' && (sortOrder === 'desc' ? '↓' : '↑')}
-        </button>
-        <button
-          onClick={() => toggleSort('total')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-            sortBy === 'total'
-              ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200'
-              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-          }`}
-        >
-          Total Votes {sortBy === 'total' && (sortOrder === 'desc' ? '↓' : '↑')}
-        </button>
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          <button
+            onClick={() => toggleSort('score')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              sortBy === 'score'
+                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            Score {sortBy === 'score' && (sortOrder === 'desc' ? '↓' : '↑')}
+          </button>
+          <button
+            onClick={() => toggleSort('superLike')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              sortBy === 'superLike'
+                ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            Love {sortBy === 'superLike' && (sortOrder === 'desc' ? '↓' : '↑')}
+          </button>
+          <button
+            onClick={() => toggleSort('up')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              sortBy === 'up'
+                ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            Neat {sortBy === 'up' && (sortOrder === 'desc' ? '↓' : '↑')}
+          </button>
+          <button
+            onClick={() => toggleSort('neutral')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              sortBy === 'neutral'
+                ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            Meh {sortBy === 'neutral' && (sortOrder === 'desc' ? '↓' : '↑')}
+          </button>
+          <button
+            onClick={() => toggleSort('total')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              sortBy === 'total'
+                ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            Total Votes {sortBy === 'total' && (sortOrder === 'desc' ? '↓' : '↑')}
+          </button>
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            onClick={handleCopyLink}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            {copied ? (
+              <>
+                <Check size={16} className="text-green-500" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Link size={16} />
+                <span>Share Link</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <Download size={16} />
+            <span>Download CSV</span>
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -134,7 +220,6 @@ function IdeaStatsComponent({ ideas }: IdeaStatsProps) {
             const score = calculateScore(idea);
             const total = calculateTotal(idea);
             const scorePercentage = (score / (maxScore || 1)) * 100;
-            const votesPercentage = (total / (maxVotes || 1)) * 100;
 
             return (
               <motion.div

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AppMenu } from '@/components/ui/app-menu';
 import { IdeaStats } from '@/components/ui/idea-stats';
+import { Link, Check } from 'lucide-react';
 
 interface IdeaGroup {
   groupId: string;
@@ -25,6 +26,7 @@ export default function MyLists() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -58,6 +60,14 @@ export default function MyLists() {
 
   const handleNew = () => {
     router.push('/');
+  };
+
+  const handleCopyLink = (groupId: string) => {
+    const url = `${window.location.origin}/swipe/${groupId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedId(groupId);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
   };
 
   if (isLoading) {
@@ -124,6 +134,17 @@ export default function MyLists() {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => handleCopyLink(group.groupId)}
+                        className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 flex items-center justify-center"
+                        aria-label="Copy share link"
+                      >
+                        {copiedId === group.groupId ? (
+                          <Check size={16} className="text-green-500" />
+                        ) : (
+                          <Link size={16} />
+                        )}
+                      </button>
+                      <button
                         onClick={() => handleEdit(group.groupId)}
                         className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
                       >
@@ -147,7 +168,7 @@ export default function MyLists() {
                       exit={{ opacity: 0, height: 0 }}
                       className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
                     >
-                      <IdeaStats ideas={group.ideas} />
+                      <IdeaStats ideas={group.ideas} groupId={group.groupId} />
                     </motion.div>
                   )}
                 </div>
