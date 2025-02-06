@@ -28,6 +28,64 @@ export async function GET(
   }
 }
 
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectToDatabase();
+
+    const { ideas, creatorId } = await req.json();
+    
+    // Verify creator
+    const existingIdeas = await ProductIdea.find({ groupId: params.id });
+    if (!existingIdeas || existingIdeas.length === 0) {
+      return NextResponse.json(
+        { message: 'No ideas found in this group' },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is the creator
+    if (existingIdeas[0].creatorId !== creatorId) {
+      return NextResponse.json(
+        { message: 'Unauthorized to update this group' },
+        { status: 403 }
+      );
+    }
+
+    // Delete existing ideas
+    await ProductIdea.deleteMany({ groupId: params.id });
+
+    // Create new ideas with the same group ID
+    const updatedIdeas = await Promise.all(
+      ideas.map((idea: { title: string; description: string }, index: number) =>
+        ProductIdea.create({
+          title: idea.title,
+          description: idea.description,
+          shareableId: existingIdeas[index]?.shareableId || `${params.id}_${index}`,
+          groupId: params.id,
+          creatorId,
+          order: index,
+          votes: { superLike: 0, up: 0, neutral: 0 },
+          views: 0
+        })
+      )
+    );
+
+    return NextResponse.json({
+      message: 'Ideas updated successfully',
+      ideas: updatedIdeas
+    });
+  } catch (error) {
+    console.error('Failed to update ideas:', error);
+    return NextResponse.json(
+      { message: 'Failed to update ideas' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }

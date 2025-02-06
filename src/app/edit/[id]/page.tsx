@@ -112,6 +112,12 @@ export default function EditIdeas({ params }: PageProps) {
       return;
     }
 
+    const creatorId = localStorage.getItem('featok_creator_id');
+    if (!creatorId) {
+      showToast('You must be the creator to edit this list', 'error');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -120,11 +126,12 @@ export default function EditIdeas({ params }: PageProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ideas }),
+        body: JSON.stringify({ ideas, creatorId }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update ideas');
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to update ideas');
       }
 
       showToast('Ideas updated successfully!');
