@@ -153,7 +153,7 @@ export default function SwipePage({ params }: PageProps) {
               >
                 <h3 className="font-medium">{idea.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  ❤️ {idea.votes.superLike} | 😊 {idea.votes.up} | 🤷 {idea.votes.neutral}
+                  ❤️ {idea.votes.superLike} | 👍 {idea.votes.up} | 🤷 {idea.votes.neutral}
                 </p>
               </div>
             ))}

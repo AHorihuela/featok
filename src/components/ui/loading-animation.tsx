@@ -36,7 +36,7 @@ export function LoadingAnimation() {
             delay: 0.6,
           }}
         >
-          <div className="absolute bottom-4 right-4 text-yellow-500 text-2xl">😊</div>
+          <div className="absolute bottom-4 right-4 text-yellow-500 text-2xl">👍</div>
         </motion.div>
 
         {/* Meh Card (Left) */}

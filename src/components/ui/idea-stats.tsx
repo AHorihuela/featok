@@ -275,7 +275,7 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
                       <span className="text-xs text-gray-500">({idea.votes.superLike})</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">😊</span>
+                      <span className="text-yellow-500">👍</span>
                       <span>{(ratios.up * 100).toFixed(1)}%</span>
                       <span className="text-xs text-gray-500">({idea.votes.up})</span>
                     </div>

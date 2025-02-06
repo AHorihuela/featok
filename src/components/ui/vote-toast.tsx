@@ -17,7 +17,7 @@ export function VoteToast({ voteConfirmation }: VoteToastProps) {
         >
           <span className="text-2xl">
             {voteConfirmation.type === 'superLike' && '❤️'}
-            {voteConfirmation.type === 'up' && '😊'}
+            {voteConfirmation.type === 'up' && '👍'}
             {voteConfirmation.type === 'neutral' && '🤷'}
           </span>
           <span className="font-medium text-gray-700 dark:text-gray-200">

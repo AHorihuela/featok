@@ -64,7 +64,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          😊 Neat
+          👍 Thumbs Up
         </motion.button>
         <motion.button
           onClick={() => handleButtonVote('superLike')}
