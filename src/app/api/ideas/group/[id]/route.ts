@@ -99,7 +99,7 @@ export async function GET(request: Request) {
           total,
           hasMore: offset + ideas.length < total
         },
-        groupTitle: ideas[0]?.groupTitle || 'My Ideas'
+        groupTitle: ideas[0]?.groupTitle || 'Cast your vote'
       });
     } catch (error) {
       console.error('Query error:', error instanceof Error ? error.message : error);

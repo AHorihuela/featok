@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { useAnimation } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { AppMenu } from '@/components/ui/app-menu';
 import { IdeaCard } from '@/components/ui/idea-card';
@@ -38,7 +38,7 @@ export default function SwipePage({ params }: PageProps) {
   const [isCreator, setIsCreator] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
-  const [groupTitle, setGroupTitle] = useState<string>('Vote on Ideas');
+  const [groupTitle, setGroupTitle] = useState<string>('Cast your vote');
   const controls = useAnimation();
   const [showInstructions, setShowInstructions] = useState(true);
   const [buttonVoteType, setButtonVoteType] = useState<'superLike' | 'up' | 'neutral' | null>(null);

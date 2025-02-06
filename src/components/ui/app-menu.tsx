@@ -48,9 +48,14 @@ export function AppMenu({ groupId }: AppMenuProps) {
   // Define menu items based on current page and creator status
   const getMenuItems = (): MenuItem[] => {
     // If we're on a voting page and user is the creator
-    if (pathname.startsWith('/swipe/') && isCreator) {
+    if (pathname.startsWith('/swipe/')) {
+      if (isCreator) {
+        return [
+          { icon: "✏️", label: "Edit List", href: `/edit/${groupId}` },
+          { icon: "📋", label: "My Lists", href: "/my-lists" },
+        ];
+      }
       return [
-        { icon: "✏️", label: "Edit List", href: `/edit/${groupId}` },
         { icon: "📋", label: "My Lists", href: "/my-lists" },
       ];
     }
@@ -77,17 +82,15 @@ export function AppMenu({ groupId }: AppMenuProps) {
       ];
     }
 
-    // Default - show nothing if user isn't a creator or on a relevant page
-    return [];
+    // Default - show My Lists for all pages
+    return [
+      { icon: "📋", label: "My Lists", href: "/my-lists" },
+    ];
   };
 
   const menuItems = getMenuItems();
 
-  // Don't render anything if there are no menu items
-  if (menuItems.length === 0) {
-    return null;
-  }
-
+  // Always render the menu
   return (
     <div className="relative">
       <GooeyFilter id="gooey-filter-menu" strength={5} />
