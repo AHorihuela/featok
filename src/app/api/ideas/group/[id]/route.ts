@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
+import { nanoid } from 'nanoid';
 
 interface ErrorResponse {
   message: string;
@@ -204,21 +205,25 @@ export async function PUT(request: Request) {
     }
 
     try {
+      // Delete existing ideas first
       await ProductIdea.deleteMany({ groupId: id });
       
+      // Create new ideas with fresh shareableIds
       const updatedIdeas = await Promise.all(
-        ideas.map((idea: { title: string; description: string }, index: number) =>
-          ProductIdea.create({
+        ideas.map(async (idea: { title: string; description: string }, index: number) => {
+          const shareableId = nanoid(10); // Generate a new unique ID for each idea
+          return await ProductIdea.create({
             title: idea.title.trim(),
             description: idea.description.trim(),
-            shareableId: existingIdeas[index]?.shareableId || `${id}_${index}`,
+            shareableId,
             groupId: id,
+            groupTitle: existingIdeas[0].groupTitle || 'My Ideas',
             creatorId,
             order: index,
             votes: { superLike: 0, up: 0, neutral: 0 },
             views: 0
-          })
-        )
+          });
+        })
       );
 
       return NextResponse.json({

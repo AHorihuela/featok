@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { AnimationControls, PanInfo } from 'framer-motion';
 import { VoteType } from '@/types/ideas';
-
-const SWIPE_THRESHOLD = 100;
-const SWIPE_VELOCITY = 0.3;
+import { SWIPE_ANIMATIONS, VOTE_ANIMATIONS } from '@/constants/animations';
 
 export function useSwipeGesture(
   controls: AnimationControls,
@@ -19,18 +17,17 @@ export function useSwipeGesture(
     const xOffset = info.offset.x;
     const yOffset = info.offset.y;
 
-    const maxDragDistance = 150;
     let intensity = 0;
 
     if (Math.abs(xOffset) > Math.abs(yOffset)) {
-      intensity = Math.min(Math.abs(xOffset) / maxDragDistance, 1);
+      intensity = Math.min(Math.abs(xOffset) / SWIPE_ANIMATIONS.MAX_DRAG_DISTANCE, 1);
       if (xOffset > 50) {
         setSwipeDirection('superLike');
       } else if (xOffset < -50) {
         setSwipeDirection('neutral');
       }
     } else if (yOffset < -50) {
-      intensity = Math.min(Math.abs(yOffset) / maxDragDistance, 1);
+      intensity = Math.min(Math.abs(yOffset) / SWIPE_ANIMATIONS.MAX_DRAG_DISTANCE, 1);
       setSwipeDirection('up');
     } else {
       setSwipeDirection(null);
@@ -53,26 +50,22 @@ export function useSwipeGesture(
     let direction: VoteType | null = null;
 
     if (Math.abs(xOffset) > Math.abs(yOffset)) {
-      if (xOffset > SWIPE_THRESHOLD) {
+      if (xOffset > SWIPE_ANIMATIONS.THRESHOLD) {
         direction = 'superLike';
-      } else if (xOffset < -SWIPE_THRESHOLD) {
+      } else if (xOffset < -SWIPE_ANIMATIONS.THRESHOLD) {
         direction = 'neutral';
       }
-    } else if (yOffset < -SWIPE_THRESHOLD) {
+    } else if (yOffset < -SWIPE_ANIMATIONS.THRESHOLD) {
       direction = 'up';
     }
 
-    if (direction && velocity >= SWIPE_VELOCITY) {
-      const animationProps = {
-        superLike: { x: 1000, y: 0, rotate: 30 },
-        up: { x: 0, y: -1000, rotate: 0 },
-        neutral: { x: -1000, y: 0, rotate: -30 },
-      }[direction];
+    if (direction && velocity >= SWIPE_ANIMATIONS.VELOCITY) {
+      const animationProps = VOTE_ANIMATIONS[direction];
 
       await controls.start({
         ...animationProps,
         opacity: 0,
-        transition: { duration: 0.5 },
+        transition: { duration: SWIPE_ANIMATIONS.ANIMATION_DURATION },
       });
 
       await handleVote(direction);
