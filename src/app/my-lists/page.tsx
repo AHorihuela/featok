@@ -10,6 +10,7 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 interface IdeaGroup {
   groupId: string;
+  groupTitle: string;
   ideas: Array<{
     title: string;
     description: string;
@@ -158,8 +159,8 @@ export default function MyLists() {
                   <div className="flex justify-between items-start mb-4" onClick={e => e.stopPropagation()}>
                     <div>
                       <h2 className="text-xl font-semibold mb-2">
-                        {group.ideas[0].title}
-                        {group.ideas.length > 1 && ` + ${group.ideas.length - 1} more`}
+                        {group.groupTitle || group.ideas[0].title}
+                        {group.ideas.length > 1 && ` (${group.ideas.length} ideas)`}
                       </h2>
                       <p className="text-sm text-gray-600">
                         Created {new Date(group.createdAt).toLocaleDateString()}

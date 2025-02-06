@@ -97,7 +97,8 @@ export async function GET(request: Request) {
           limit,
           total,
           hasMore: offset + ideas.length < total
-        }
+        },
+        groupTitle: ideas[0]?.groupTitle || 'My Ideas'
       });
     } catch (error) {
       console.error('Query error:', error instanceof Error ? error.message : error);

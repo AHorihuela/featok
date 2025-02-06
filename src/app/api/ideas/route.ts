@@ -2,6 +2,37 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 import { nanoid } from 'nanoid';
+import { spawn } from 'child_process';
+import { join } from 'path';
+
+async function generateTitle(ideas: Array<{ title: string; description: string }>) {
+  return new Promise((resolve, reject) => {
+    const pythonProcess = spawn('python3', [
+      join(process.cwd(), 'src/lib/summarize.py'),
+      JSON.stringify(ideas)
+    ]);
+
+    let output = '';
+    let error = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      error += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error('Python process error:', error);
+        resolve('My Ideas'); // Fallback title
+      } else {
+        resolve(output.trim() || 'My Ideas');
+      }
+    });
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -58,6 +89,9 @@ export async function POST(req: Request) {
     // Generate a unique group ID for this set of ideas
     const groupId = nanoid(10);
 
+    // Generate title for the group
+    const groupTitle = await generateTitle(ideas);
+
     try {
       // Create all ideas with the same group ID
       const createdIdeas = await Promise.all(
@@ -68,6 +102,7 @@ export async function POST(req: Request) {
               description: idea.description.trim(),
               shareableId: nanoid(10),
               groupId,
+              groupTitle,
               creatorId,
               order: index,
               votes: { superLike: 0, up: 0, neutral: 0 },
@@ -83,6 +118,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         message: 'Ideas submitted successfully',
         groupId,
+        groupTitle,
         count: createdIdeas.length,
       });
     } catch (dbError) {

@@ -55,7 +55,8 @@ export default async function connectDB() {
         await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
         waitTime += RETRY_INTERVAL;
         
-        if (mongoose.connection.readyState === mongoose.STATES.connected) {
+        const readyState = mongoose.connection.readyState as mongoose.ConnectionStates;
+        if (readyState === mongoose.ConnectionStates.connected) {
           return mongoose.connection;
         }
       }

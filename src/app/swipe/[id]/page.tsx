@@ -38,6 +38,7 @@ export default function SwipePage({ params }: PageProps) {
   const [isCreator, setIsCreator] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [groupTitle, setGroupTitle] = useState<string>('Vote on Ideas');
   const controls = useAnimation();
   const [showInstructions, setShowInstructions] = useState(true);
   const [buttonVoteType, setButtonVoteType] = useState<'superLike' | 'up' | 'neutral' | null>(null);
@@ -75,8 +76,13 @@ export default function SwipePage({ params }: PageProps) {
       }
 
       setHasMore(data.pagination.hasMore);
-      setIdeas(prev => [...prev, ...shuffleArray(data.ideas)]);
+      setIdeas(prev => [...prev, ...shuffleArray<ProductIdea>(data.ideas)]);
       setOffset(prev => prev + data.ideas.length);
+      setGroupTitle(data.groupTitle || 'Vote on Ideas');
+      
+      if (data.ideas.length > 0 && data.ideas[0].creatorId === localStorage.getItem('featok_creator_id')) {
+        setIsCreator(true);
+      }
     } catch (error) {
       console.error('Failed to load more ideas:', error);
       setError(error instanceof Error ? error.message : 'Failed to load ideas');
@@ -122,6 +128,7 @@ export default function SwipePage({ params }: PageProps) {
       setHasMore(data.pagination.hasMore);
       setIdeas(shuffleArray(data.ideas));
       setOffset(data.ideas.length);
+      setGroupTitle(data.groupTitle || 'Vote on Ideas');
       
       if (creatorId && data.ideas.length > 0 && data.ideas[0].creatorId === creatorId) {
         setIsCreator(true);
@@ -237,7 +244,7 @@ export default function SwipePage({ params }: PageProps) {
       <div className="max-w-lg mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-            Vote on Ideas
+            {groupTitle}
           </h1>
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-400">{currentIndex + 1}</span>

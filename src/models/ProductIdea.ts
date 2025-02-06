@@ -39,18 +39,23 @@ const ProductIdeaSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  groupTitle: {
+    type: String,
+    required: true,
+    default: 'My Ideas',
+  },
   creatorId: {
     type: String,
     required: true,
+    index: true,
   },
   order: {
     type: Number,
     required: true,
+    default: 0,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+}, {
+  timestamps: true,
 });
 
 export default mongoose.models.ProductIdea ||
