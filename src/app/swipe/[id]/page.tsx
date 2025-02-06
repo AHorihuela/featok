@@ -269,41 +269,40 @@ export default function SwipePage({ params }: PageProps) {
             </div>
           )}
           
-          <motion.div
-            drag={!voteConfirmation && !isVoting}
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.7}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            onTouchMove={(e) => {
-              if (e.currentTarget.style.touchAction !== 'none') {
-                e.currentTarget.style.touchAction = 'none';
+          <IdeaCard
+            idea={currentIdea}
+            swipeDirection={swipeDirection}
+            onVote={async (type) => {
+              setButtonVoteType(type);
+              await handleVote(type);
+              setButtonVoteType(null);
+            }}
+            isVoting={isVoting}
+            remainingCount={ideas.length - currentIndex - 1}
+            dragProps={{
+              drag: !voteConfirmation && !isVoting,
+              dragConstraints: { left: 0, right: 0, top: 0, bottom: 0 },
+              dragElastic: 0.7,
+              onDrag: handleDrag,
+              onDragEnd: handleDragEnd,
+              onTouchMove: (e) => {
+                if (e.currentTarget.style.touchAction !== 'none') {
+                  e.currentTarget.style.touchAction = 'none';
+                }
+              },
+              onTouchStart: () => {
+                setShowInstructions(false);
+              },
+              onTouchEnd: (e) => {
+                e.currentTarget.style.touchAction = 'auto';
+              },
+              animate: controls,
+              style: { 
+                transformOrigin: "bottom center",
+                transform: `perspective(1000px)`,
               }
             }}
-            onTouchStart={() => {
-              setShowInstructions(false);
-            }}
-            onTouchEnd={(e) => {
-              e.currentTarget.style.touchAction = 'auto';
-            }}
-            animate={controls}
-            className="relative touch-none w-full"
-            style={{ 
-              transformOrigin: "bottom center",
-              transform: `perspective(1000px)`,
-            }}
-          >
-            <IdeaCard
-              idea={currentIdea}
-              swipeDirection={swipeDirection}
-              onVote={async (type) => {
-                setButtonVoteType(type);
-                await handleVote(type);
-                setButtonVoteType(null);
-              }}
-              isVoting={isVoting}
-            />
-          </motion.div>
+          />
         </div>
       </div>
 
