@@ -15,9 +15,9 @@ A modern, user-friendly platform for submitting and voting on product ideas with
 
 ### 2. Voting Interface
 - **Swipe Gestures**
-  - Swipe right: "Sick!" (🔥) - Strong interest
-  - Swipe up: "Neat" (✨) - Moderate interest
-  - Swipe left: "Meh" (😐) - Not interested
+  - Swipe right: "Love" (❤️) - Strong interest
+  - Swipe up: "Neat" (👍) - Moderate interest
+  - Swipe left: "Meh" (🤷) - Not interested
 - **Visual Feedback**
   - Color transitions during swipes
   - Direction indicators
@@ -39,6 +39,8 @@ A modern, user-friendly platform for submitting and voting on product ideas with
   - Shows after voting on all ideas in a group
   - Displays vote counts for each reaction type
   - Clean, visual presentation of results
+  - CSV export functionality
+  - Share link functionality
 
 ## Technical Implementation
 
@@ -49,10 +51,11 @@ A modern, user-friendly platform for submitting and voting on product ideas with
     title: string;
     description: string;
     votes: {
-      superLike: number;  // "Sick!" votes
+      superLike: number;  // "Love" votes
       up: number;         // "Neat" votes
       neutral: number;    // "Meh" votes
     };
+    views: number;        // View tracking
     shareableId: string;  // Unique, shareable identifier
     groupId: string;      // Groups related ideas
     creatorId: string;    // Anonymous creator identifier
@@ -65,18 +68,37 @@ A modern, user-friendly platform for submitting and voting on product ideas with
 - `/api/ideas` (POST) - Submit multiple ideas
 - `/api/ideas/group/[id]` (GET) - Fetch ideas in a group
 - `/api/ideas/[id]/vote` (POST) - Cast vote on an idea
+- `/api/ideas/[id]/view` (POST) - Track idea views
+- `/api/ideas/creator/[id]` (GET) - Fetch creator's ideas
 
 ### UI/UX Principles
-- Dark/Light theme support
-- Responsive design
-- Smooth animations
-- Clear visual feedback
-- Intuitive swipe interactions
+- Dark/Light theme support with system preference detection
+- Responsive design with mobile-first approach
+- Smooth animations using Framer Motion
+- Clear visual feedback for all interactions
+- Intuitive swipe and click interactions
 - Toast notifications for user feedback
+- Proper meta tags and SEO optimization
+
+### Assets & Branding
+- **Favicon & Icons**
+  - SVG-based scalable favicon
+  - Multiple sizes for different platforms (16x16 to 512x512)
+  - PWA-ready icons
+  - Maskable icons for Android
+  - Safari pinned tab icon
+  - Apple touch icon
+- **Meta Tags & SEO**
+  - OpenGraph images for social sharing (1200x630)
+  - Twitter card support
+  - PWA manifest
+  - Comprehensive meta descriptions
+  - Proper favicon implementation
+  - Automated image generation pipeline
 
 ### Code Quality Standards
 - TypeScript for type safety
-- ESLint for code quality
+- ESLint with strict rules
 - Prettier for consistent formatting
 - React best practices
 - Next.js 14 app router conventions
@@ -84,10 +106,11 @@ A modern, user-friendly platform for submitting and voting on product ideas with
 ## Development Guidelines
 
 ### Styling
-- Tailwind CSS for styling
+- Tailwind CSS with custom design tokens
 - CSS variables for theming
 - Mobile-first responsive design
 - Consistent component patterns
+- Geist font for modern typography
 
 ### Error Handling
 - Graceful error states
@@ -100,12 +123,42 @@ A modern, user-friendly platform for submitting and voting on product ideas with
 - Efficient state management
 - Minimal re-renders
 - Proper data caching
+- Image optimization with Sharp
+- SVG optimization with SVGO
 
 ### Accessibility
 - Keyboard navigation support
 - Screen reader friendly
 - ARIA attributes where needed
 - Color contrast compliance
+- Proper heading hierarchy
+
+## Development Environment
+- Node.js
+- MongoDB
+- Next.js 14
+- React 19
+- TypeScript 5
+- Tailwind CSS
+- Framer Motion
+- Geist Font
+- Sharp for image processing
+- SVGO for SVG optimization
+
+## Deployment
+- Vercel for hosting (recommended)
+  - Zero-config deployment
+  - Automatic HTTPS
+  - Edge functions
+  - Preview deployments
+  - Analytics
+- MongoDB Atlas for database
+  - Free tier with 512MB storage
+  - Automated backups
+  - Monitoring tools
+- Environment Variables
+  - MONGODB_URI
+  - Other configuration
 
 ## Future Considerations
 1. Edit functionality for creators
