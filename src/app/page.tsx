@@ -1,4 +1,5 @@
 import IdeaSubmissionForm from '@/components/IdeaSubmissionForm';
+import { AppMenu } from '@/components/ui/app-menu';
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         </p>
 
         <IdeaSubmissionForm />
+        <AppMenu />
       </div>
     </main>
   );

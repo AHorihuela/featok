@@ -1,3 +1,5 @@
+'use client';
+
 const GooeyFilter = ({
   id = "goo-filter",
   strength = 10,
