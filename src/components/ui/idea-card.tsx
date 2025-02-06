@@ -1,6 +1,7 @@
 import { motion, useAnimation } from 'framer-motion';
 import { ProductIdea, VoteType } from '@/types/ideas';
 import { useState } from 'react';
+import { ShineBorder } from './shine-border';
 
 interface IdeaCardProps {
   idea: ProductIdea;
@@ -41,7 +42,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
   };
 
   // Calculate background color based on vote type and intensity
-  const getBackgroundColor = () => {
+  const getBorderColor = () => {
     const type = buttonVoteType || swipeDirection;
     const intensity = buttonVoteType ? 0.15 : 0; // Full intensity for button clicks
 
@@ -52,7 +53,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
     } else if (type === 'neutral') {
       return `rgba(239, 68, 68, ${intensity})`;
     }
-    return 'transparent';
+    return '#e2e8f0';
   };
 
   return (
@@ -60,49 +61,57 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
       key="card"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-10 touch-none min-h-[420px] flex flex-col"
-      style={{ 
-        touchAction: 'none',
-        backgroundColor: getBackgroundColor(),
-        transition: 'background-color 0.3s ease'
-      }}
       animate={controls}
+      className="w-full max-w-md mx-auto"
     >
-      <div className="flex-grow">
-        <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
-          {idea.title}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
-          {idea.description}
-        </p>
-      </div>
+      <ShineBorder
+        className="min-h-[420px] w-full bg-white dark:bg-gray-800 p-8 flex flex-col"
+        color={getBorderColor()}
+        borderRadius={32}
+        borderWidth={1}
+        duration={4}
+      >
+        <div className="flex-grow flex flex-col items-center justify-center text-center">
+          <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+            {idea.title}
+          </h2>
+          {idea.description && (
+            <p className="text-gray-500 dark:text-gray-400 text-xl">
+              {idea.description}
+            </p>
+          )}
+        </div>
 
-      <div className="grid grid-cols-3 gap-4 mt-8">
-        <motion.button
-          onClick={() => handleButtonVote('neutral')}
-          className="w-full py-4 px-4 rounded-2xl bg-red-50 text-red-500 font-medium text-lg hover:bg-red-100 transition-colors"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          🤷 Meh
-        </motion.button>
-        <motion.button
-          onClick={() => handleButtonVote('up')}
-          className="w-full py-4 px-4 rounded-2xl bg-yellow-50 text-yellow-600 font-medium text-lg hover:bg-yellow-100 transition-colors"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          👍 Thumbs Up
-        </motion.button>
-        <motion.button
-          onClick={() => handleButtonVote('superLike')}
-          className="w-full py-4 px-4 rounded-2xl bg-green-50 text-green-500 font-medium text-lg hover:bg-green-100 transition-colors"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          ❤️ Love
-        </motion.button>
-      </div>
+        <div className="grid grid-cols-3 gap-3">
+          <motion.button
+            onClick={() => handleButtonVote('neutral')}
+            className="flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-3xl bg-red-50/50 text-red-500 font-medium hover:bg-red-50 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="text-2xl">🤷</span>
+            <span>Meh</span>
+          </motion.button>
+          <motion.button
+            onClick={() => handleButtonVote('up')}
+            className="flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-3xl bg-yellow-50/50 text-yellow-600 font-medium hover:bg-yellow-50 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="text-2xl">👍</span>
+            <span>Neat</span>
+          </motion.button>
+          <motion.button
+            onClick={() => handleButtonVote('superLike')}
+            className="flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-3xl bg-green-50/50 text-green-500 font-medium hover:bg-green-50 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="text-2xl">❤️</span>
+            <span>Love</span>
+          </motion.button>
+        </div>
+      </ShineBorder>
     </motion.div>
   );
 } 
