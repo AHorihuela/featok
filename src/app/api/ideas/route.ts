@@ -5,7 +5,19 @@ import { nanoid } from 'nanoid';
 
 export async function POST(req: Request) {
   try {
-    const { ideas, creatorId } = await req.json();
+    let ideas, creatorId;
+    
+    try {
+      const body = await req.json();
+      ideas = body.ideas;
+      creatorId = body.creatorId;
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
+      return NextResponse.json(
+        { message: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
 
     // Validate input
     if (!Array.isArray(ideas) || ideas.length === 0) {
@@ -49,16 +61,23 @@ export async function POST(req: Request) {
     try {
       // Create all ideas with the same group ID
       const createdIdeas = await Promise.all(
-        ideas.map((idea, index) =>
-          ProductIdea.create({
-            title: idea.title,
-            description: idea.description,
-            shareableId: nanoid(10),
-            groupId,
-            creatorId,
-            order: index,
-          })
-        )
+        ideas.map(async (idea, index) => {
+          try {
+            return await ProductIdea.create({
+              title: idea.title.trim(),
+              description: idea.description.trim(),
+              shareableId: nanoid(10),
+              groupId,
+              creatorId,
+              order: index,
+              votes: { superLike: 0, up: 0, neutral: 0 },
+              views: 0
+            });
+          } catch (createError) {
+            console.error(`Failed to create idea ${index}:`, createError);
+            throw new Error(`Failed to create idea ${index}: ${createError instanceof Error ? createError.message : 'Unknown error'}`);
+          }
+        })
       );
 
       return NextResponse.json({
@@ -74,9 +93,9 @@ export async function POST(req: Request) {
       );
     }
   } catch (error) {
-    console.error('Request processing error:', error);
+    console.error('Unexpected error in ideas creation:', error);
     return NextResponse.json(
-      { message: 'Failed to process request' },
+      { message: 'An unexpected error occurred' },
       { status: 500 }
     );
   }
