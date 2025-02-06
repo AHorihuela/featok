@@ -149,8 +149,13 @@ export default function MyLists() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
               >
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
+                <div 
+                  className="p-6 cursor-pointer"
+                  onClick={() => setExpandedGroup(
+                    expandedGroup === group.groupId ? null : group.groupId
+                  )}
+                >
+                  <div className="flex justify-between items-start mb-4" onClick={e => e.stopPropagation()}>
                     <div>
                       <h2 className="text-xl font-semibold mb-2">
                         {group.ideas[0].title}
@@ -179,14 +184,6 @@ export default function MyLists() {
                         Edit
                       </button>
                       <button
-                        onClick={() => setExpandedGroup(
-                          expandedGroup === group.groupId ? null : group.groupId
-                        )}
-                        className="px-4 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-200"
-                      >
-                        {expandedGroup === group.groupId ? 'Hide Stats' : 'View Stats'}
-                      </button>
-                      <button
                         onClick={() => setDeleteGroupId(group.groupId)}
                         className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-200 flex items-center justify-center"
                         aria-label="Delete list"
@@ -202,6 +199,7 @@ export default function MyLists() {
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+                      onClick={e => e.stopPropagation()}
                     >
                       <IdeaStats ideas={group.ideas} groupId={group.groupId} />
                     </motion.div>
