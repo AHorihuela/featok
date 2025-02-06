@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import React from 'react';
 import { ProductIdea, VoteType, VoteConfirmation } from '@/types/ideas';
 
-export function useVoting(ideas: ProductIdea[], setIdeas: (ideas: ProductIdea[]) => void) {
+export function useVoting(ideas: ProductIdea[], setIdeas: React.Dispatch<React.SetStateAction<ProductIdea[]>>) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [voteConfirmation, setVoteConfirmation] = useState<VoteConfirmation | null>(null);
   const [lastVote, setLastVote] = useState<VoteConfirmation | null>(null);

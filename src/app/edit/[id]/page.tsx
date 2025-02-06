@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppMenu } from '@/components/ui/app-menu';
@@ -36,18 +36,7 @@ export default function EditIdeas({ params }: PageProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
-    const creatorId = localStorage.getItem('featok_creator_id');
-    if (!creatorId) {
-      setError('You must be the creator to edit this list');
-      setIsLoading(false);
-      return;
-    }
-
-    fetchIdeas(creatorId);
-  }, [id]);
-
-  const fetchIdeas = async (creatorId: string) => {
+  const fetchIdeas = useCallback(async (creatorId: string) => {
     try {
       const response = await fetch(`/api/ideas/group/${id}`);
       if (!response.ok) throw new Error('Failed to fetch ideas');
@@ -78,7 +67,18 @@ export default function EditIdeas({ params }: PageProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    const creatorId = localStorage.getItem('featok_creator_id');
+    if (!creatorId) {
+      setError('You must be the creator to edit this list');
+      setIsLoading(false);
+      return;
+    }
+
+    fetchIdeas(creatorId);
+  }, [fetchIdeas]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     const id = Date.now();

@@ -201,7 +201,10 @@ export default function MyLists() {
                       className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
                       onClick={e => e.stopPropagation()}
                     >
-                      <IdeaStats ideas={group.ideas} groupId={group.groupId} />
+                      <IdeaStats ideas={group.ideas.map(idea => ({
+                        ...idea,
+                        views: 0
+                      }))} groupId={group.groupId} />
                     </motion.div>
                   )}
                 </div>

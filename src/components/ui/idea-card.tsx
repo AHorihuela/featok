@@ -1,6 +1,5 @@
 import { motion, useAnimation } from 'framer-motion';
 import { ProductIdea, VoteType } from '@/types/ideas';
-import { useState } from 'react';
 
 interface IdeaCardProps {
   idea: ProductIdea;

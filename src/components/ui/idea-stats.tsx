@@ -28,14 +28,13 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
   const [copied, setCopied] = useState(false);
 
   const calculateVoteRatios = (idea: IdeaStats) => {
-    const totalVotes = idea.votes.superLike + idea.votes.up + idea.votes.neutral;
-    if (totalVotes === 0) return { superLike: 0, up: 0, neutral: 0, total: 0 };
-    
+    const total = calculateTotal(idea);
+    if (total === 0) return { superLike: 0, up: 0, neutral: 0 };
+
     return {
-      superLike: idea.votes.superLike / totalVotes,
-      up: idea.votes.up / totalVotes,
-      neutral: idea.votes.neutral / totalVotes,
-      total: totalVotes
+      superLike: (idea.votes.superLike / total) * 100,
+      up: (idea.votes.up / total) * 100,
+      neutral: (idea.votes.neutral / total) * 100,
     };
   };
 
@@ -49,41 +48,19 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
     return idea.votes.superLike + idea.votes.up + idea.votes.neutral;
   };
 
-  const sortedIdeas = [...ideas].sort((a, b) => {
-    let aValue = 0;
-    let bValue = 0;
+  const sortIdeas = (ideas: IdeaStats[], key: SortKey) => {
+    return [...ideas].sort((a, b) => {
+      if (key === 'total') {
+        return calculateTotal(b) - calculateTotal(a);
+      }
+      if (key === 'score') {
+        return calculateScore(b) - calculateScore(a);
+      }
+      return b.votes[key] - a.votes[key];
+    });
+  };
 
-    switch (sortBy) {
-      case 'superLike':
-        const aRatioSuper = calculateVoteRatios(a).superLike;
-        const bRatioSuper = calculateVoteRatios(b).superLike;
-        aValue = aRatioSuper;
-        bValue = bRatioSuper;
-        break;
-      case 'up':
-        const aRatioUp = calculateVoteRatios(a).up;
-        const bRatioUp = calculateVoteRatios(b).up;
-        aValue = aRatioUp;
-        bValue = bRatioUp;
-        break;
-      case 'neutral':
-        const aRatioNeutral = calculateVoteRatios(a).neutral;
-        const bRatioNeutral = calculateVoteRatios(b).neutral;
-        aValue = aRatioNeutral;
-        bValue = bRatioNeutral;
-        break;
-      case 'total':
-        aValue = calculateTotal(a);
-        bValue = calculateTotal(b);
-        break;
-      case 'score':
-        aValue = calculateScore(a);
-        bValue = calculateScore(b);
-        break;
-    }
-
-    return sortOrder === 'desc' ? bValue - aValue : aValue - bValue;
-  });
+  const sortedIdeas = sortIdeas(ideas, sortBy);
 
   const toggleSort = (key: SortKey) => {
     if (sortBy === key) {
@@ -95,7 +72,6 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
   };
 
   const maxScore = Math.max(...ideas.map(calculateScore));
-  const maxVotes = Math.max(...ideas.map(calculateTotal));
 
   const handleDownload = () => {
     // Create CSV headers
@@ -271,17 +247,17 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
                   <div className="flex gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <span className="text-green-500">❤️</span>
-                      <span>{(ratios.superLike * 100).toFixed(1)}%</span>
+                      <span>{(ratios.superLike).toFixed(1)}%</span>
                       <span className="text-xs text-gray-500">({idea.votes.superLike})</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-yellow-500">👍</span>
-                      <span>{(ratios.up * 100).toFixed(1)}%</span>
+                      <span>{(ratios.up).toFixed(1)}%</span>
                       <span className="text-xs text-gray-500">({idea.votes.up})</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-red-500">🤷</span>
-                      <span>{(ratios.neutral * 100).toFixed(1)}%</span>
+                      <span>{(ratios.neutral).toFixed(1)}%</span>
                       <span className="text-xs text-gray-500">({idea.votes.neutral})</span>
                     </div>
                     <div className="ml-auto flex items-center gap-2">

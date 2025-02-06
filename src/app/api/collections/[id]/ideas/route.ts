@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Collection from '@/models/Collection';
-import Idea, { IIdea } from '@/models/Idea';
+import Idea from '@/models/Idea';
 import { Document } from 'mongoose';
 
-interface IdeaDocument extends Document, IIdea {}
+interface IdeaDocument extends Document {
+  text: string;
+  votes: {
+    up: number;
+    down: number;
+  };
+  userVotes: Map<string, 'up' | 'down'>;
+}
 
-export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+export async function GET(request: Request) {
   try {
+    const id = request.url.split('/').pop();
     await connectDB();
-    const collection = await Collection.findById(id).populate('ideas');
+    const collection = await Collection.findById(id).populate<{
+      ideas: IdeaDocument[];
+    }>('ideas');
     if (!collection) {
       return NextResponse.json(
         { error: 'Collection not found' },
@@ -43,12 +49,9 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+export async function POST(request: Request) {
   try {
+    const id = request.url.split('/').pop();
     const { text } = await request.json();
     await connectDB();
 
@@ -77,12 +80,9 @@ export async function POST(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+export async function DELETE(request: Request) {
   try {
+    const id = request.url.split('/').pop();
     await connectDB();
 
     const collection = await Collection.findById(id).populate('ideas');
@@ -110,12 +110,9 @@ export async function DELETE(
   }
 }
 
-export async function PUT(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+export async function PUT(request: Request) {
   try {
+    const id = request.url.split('/').pop();
     const { ideas } = await request.json();
     await connectDB();
 

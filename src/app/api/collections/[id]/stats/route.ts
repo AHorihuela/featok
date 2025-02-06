@@ -3,12 +3,9 @@ import connectDB from '@/lib/mongodb';
 import Collection from '@/models/Collection';
 import { IIdea } from '@/models/Idea';
 
-export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-) {
+export async function GET(request: Request) {
   try {
-    const { id } = await Promise.resolve(context.params);
+    const id = request.url.split('/').pop();
     await connectDB();
     const collection = await Collection.findById(id).populate<{
       ideas: IIdea[];

@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request) {
   try {
-    await connectToDatabase();
+    const id = request.url.split('/').pop();
+    await connectDB();
 
-    const ideas = await ProductIdea.find({ groupId: params.id });
+    const ideas = await ProductIdea.find({ groupId: id });
 
     if (!ideas || ideas.length === 0) {
       return NextResponse.json(
@@ -28,17 +26,15 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request) {
   try {
-    await connectToDatabase();
+    const id = request.url.split('/').pop();
+    await connectDB();
 
-    const { ideas, creatorId } = await req.json();
+    const { ideas, creatorId } = await request.json();
     
     // Verify creator
-    const existingIdeas = await ProductIdea.find({ groupId: params.id });
+    const existingIdeas = await ProductIdea.find({ groupId: id });
     if (!existingIdeas || existingIdeas.length === 0) {
       return NextResponse.json(
         { message: 'No ideas found in this group' },
@@ -55,7 +51,7 @@ export async function PUT(
     }
 
     // Delete existing ideas
-    await ProductIdea.deleteMany({ groupId: params.id });
+    await ProductIdea.deleteMany({ groupId: id });
 
     // Create new ideas with the same group ID
     const updatedIdeas = await Promise.all(
@@ -63,8 +59,8 @@ export async function PUT(
         ProductIdea.create({
           title: idea.title,
           description: idea.description,
-          shareableId: existingIdeas[index]?.shareableId || `${params.id}_${index}`,
-          groupId: params.id,
+          shareableId: existingIdeas[index]?.shareableId || `${id}_${index}`,
+          groupId: id,
           creatorId,
           order: index,
           votes: { superLike: 0, up: 0, neutral: 0 },
@@ -86,16 +82,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request) {
   try {
-    await connectToDatabase();
+    const id = request.url.split('/').pop();
+    await connectDB();
 
     // Verify creator
-    const { creatorId } = await req.json();
-    const ideas = await ProductIdea.find({ groupId: params.id });
+    const { creatorId } = await request.json();
+    const ideas = await ProductIdea.find({ groupId: id });
 
     if (!ideas || ideas.length === 0) {
       return NextResponse.json(
@@ -113,7 +107,7 @@ export async function DELETE(
     }
 
     // Delete all ideas in the group
-    await ProductIdea.deleteMany({ groupId: params.id });
+    await ProductIdea.deleteMany({ groupId: id });
 
     return NextResponse.json({ message: 'Group deleted successfully' });
   } catch (error) {

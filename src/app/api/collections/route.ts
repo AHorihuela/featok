@@ -5,25 +5,27 @@ import Collection from '@/models/Collection';
 export async function GET() {
   try {
     await connectDB();
-    const collections = await Collection.find({}).sort({ createdAt: -1 });
+    const collections = await Collection.find().populate('ideas');
     return NextResponse.json(collections);
-  } catch (error) {
+  } catch (err) {
+    console.error('Failed to fetch collections:', err);
     return NextResponse.json(
-      { error: 'Failed to fetch collections' },
+      { message: 'Failed to fetch collections' },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { name } = await request.json();
+    const { name, description } = await req.json();
     await connectDB();
-    const collection = await Collection.create({ name });
-    return NextResponse.json(collection, { status: 201 });
-  } catch (error) {
+    const collection = await Collection.create({ name, description });
+    return NextResponse.json(collection);
+  } catch (err) {
+    console.error('Failed to create collection:', err);
     return NextResponse.json(
-      { error: 'Failed to create collection' },
+      { message: 'Failed to create collection' },
       { status: 500 }
     );
   }

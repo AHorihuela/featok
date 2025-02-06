@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 import { nanoid } from 'nanoid';
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     }
 
     // Connect to database
-    await connectToDatabase();
+    await connectDB();
 
     // Generate a unique group ID for this set of ideas
     const groupId = nanoid(10);

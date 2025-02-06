@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request) {
   try {
-    await connectToDatabase();
+    const id = request.url.split('/').pop();
+    await connectDB();
 
-    const idea = await ProductIdea.findOne({ shareableId: params.id });
+    const idea = await ProductIdea.findOne({ shareableId: id });
 
     if (!idea) {
       return NextResponse.json({ message: 'Idea not found' }, { status: 404 });

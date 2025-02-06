@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request) {
   try {
-    await connectToDatabase();
+    const id = request.url.split('/').pop();
+    await connectDB();
 
     const idea = await ProductIdea.findOneAndUpdate(
-      { shareableId: params.id },
+      { shareableId: id },
       { $inc: { views: 1 } },
       { new: true }
     );

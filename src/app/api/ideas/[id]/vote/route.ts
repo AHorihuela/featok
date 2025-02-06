@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 
 type VoteType = 'superLike' | 'up' | 'neutral';
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request) {
   try {
-    const { type } = (await req.json()) as { type: VoteType };
+    const id = request.url.split('/').pop();
+    const { type } = (await request.json()) as { type: VoteType };
 
     if (!type || !['superLike', 'up', 'neutral'].includes(type)) {
       return NextResponse.json(
@@ -18,9 +16,9 @@ export async function POST(
       );
     }
 
-    await connectToDatabase();
+    await connectDB();
 
-    const idea = await ProductIdea.findOne({ shareableId: params.id });
+    const idea = await ProductIdea.findOne({ shareableId: id });
 
     if (!idea) {
       return NextResponse.json({ message: 'Idea not found' }, { status: 404 });
@@ -29,12 +27,12 @@ export async function POST(
     // Increment the appropriate vote counter
     const updateField = `votes.${type}`;
     await ProductIdea.updateOne(
-      { shareableId: params.id },
+      { shareableId: id },
       { $inc: { [updateField]: 1 } }
     );
 
     // Fetch and return updated idea
-    const updatedIdea = await ProductIdea.findOne({ shareableId: params.id });
+    const updatedIdea = await ProductIdea.findOne({ shareableId: id });
     return NextResponse.json(updatedIdea);
   } catch (error) {
     console.error('Failed to submit vote:', error);

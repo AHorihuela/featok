@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ProductIdea from '@/models/ProductIdea';
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request) {
   try {
-    await connectToDatabase();
+    const id = request.url.split('/').pop();
+    await connectDB();
 
     // Find all ideas by creator, grouped by groupId
-    const ideas = await ProductIdea.find({ creatorId: params.id }).sort({
+    const ideas = await ProductIdea.find({ creatorId: id }).sort({
       createdAt: -1,
     });
 
@@ -26,6 +24,7 @@ export async function GET(
           title: idea.title,
           description: idea.description,
           votes: idea.votes,
+          views: idea.views || 0,
         });
       } else {
         acc.push({
@@ -36,6 +35,7 @@ export async function GET(
               title: idea.title,
               description: idea.description,
               votes: idea.votes,
+              views: idea.views || 0,
             },
           ],
         });
@@ -52,6 +52,7 @@ export async function GET(
           up: number;
           neutral: number;
         };
+        views: number;
       }>;
     }>);
 
