@@ -276,7 +276,6 @@ export default function SwipePage({ params }: PageProps) {
           
           <IdeaCard
             idea={currentIdea}
-            swipeDirection={swipeDirection}
             onVote={async (type) => {
               setButtonVoteType(type);
               await handleVote(type);
