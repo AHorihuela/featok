@@ -6,7 +6,7 @@ if (!process.env.MONGODB_URI) {
 
 const MONGODB_URI: string = process.env.MONGODB_URI;
 
-export async function connectToDatabase() {
+export default async function connectDB() {
   try {
     const opts = {
       bufferCommands: false,
