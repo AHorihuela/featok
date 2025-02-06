@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { Edit2, Menu, List, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { GooeyFilter } from "./gooey-filter"
 import { useRouter } from "next/navigation"
 
 const MENU_ITEMS = [
-  { icon: Edit2, label: "Edit List", href: "/edit" },
-  { icon: List, label: "My Lists", href: "/my-lists" },
+  { icon: "✏️", label: "Edit List", href: "/edit" },
+  { icon: "📋", label: "My Lists", href: "/my-lists" },
 ]
 
 interface MenuButtonProps {
@@ -29,7 +29,6 @@ export function MenuButton({ groupId }: MenuButtonProps) {
         <AnimatePresence>
           {isOpen &&
             MENU_ITEMS.map((item, index) => {
-              const Icon = item.icon
               return (
                 <motion.button
                   key={item.label}
@@ -64,7 +63,7 @@ export function MenuButton({ groupId }: MenuButtonProps) {
                     }
                   }}
                 >
-                  <Icon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <span className="text-xl">{item.icon}</span>
                   <span className="text-gray-700 dark:text-gray-200 font-medium">
                     {item.label}
                   </span>

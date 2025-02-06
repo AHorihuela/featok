@@ -387,8 +387,8 @@ export default function SwipePage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Menu Button */}
-        <MenuButton groupId={id} />
+        {/* Menu Button - Only show for creator */}
+        {isCreator && <MenuButton groupId={id} />}
 
         {/* Card Container */}
         <div className="h-[calc(100vh-320px)] relative flex items-center justify-center">
@@ -398,8 +398,13 @@ export default function SwipePage({ params }: PageProps) {
             dragElastic={0.7}
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
-            onTouchStart={(e) => {
-              e.currentTarget.style.touchAction = 'none';
+            onTouchMove={(e) => {
+              // Prevent scrolling while dragging
+              if (e.currentTarget.style.touchAction !== 'none') {
+                e.currentTarget.style.touchAction = 'none';
+              }
+            }}
+            onTouchStart={() => {
               setShowInstructions(false);
             }}
             onTouchEnd={(e) => {
@@ -410,7 +415,6 @@ export default function SwipePage({ params }: PageProps) {
             style={{ 
               transformOrigin: "bottom center",
               transform: `perspective(1000px)`,
-              touchAction: 'none'
             }}
           >
             <motion.div
