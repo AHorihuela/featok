@@ -1,5 +1,6 @@
 import { motion, useAnimation } from 'framer-motion';
 import { ProductIdea, VoteType } from '@/types/ideas';
+import { useState } from 'react';
 
 interface IdeaCardProps {
   idea: ProductIdea;
@@ -9,14 +10,21 @@ interface IdeaCardProps {
 
 export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
   const controls = useAnimation();
+  const [buttonVoteType, setButtonVoteType] = useState<VoteType | null>(null);
 
   const handleButtonVote = async (type: VoteType) => {
+    // Set the vote type to trigger background animation
+    setButtonVoteType(type);
+
     // Define animation properties based on vote type
     const animationProps = {
       superLike: { x: 1000, y: 0, rotate: 30, opacity: 0 },
       up: { x: 0, y: -1000, rotate: 0, opacity: 0 },
       neutral: { x: -1000, y: 0, rotate: -30, opacity: 0 },
     }[type];
+
+    // Wait a bit to show the background color
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Animate the card
     await controls.start({
@@ -27,8 +35,24 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
     // Submit the vote
     await onVote(type);
 
-    // Reset the card position
+    // Reset the card position and background
     await controls.set({ x: 0, y: 0, rotate: 0, opacity: 1 });
+    setButtonVoteType(null);
+  };
+
+  // Calculate background color based on vote type and intensity
+  const getBackgroundColor = () => {
+    const type = buttonVoteType || swipeDirection;
+    const intensity = buttonVoteType ? 0.15 : 0; // Full intensity for button clicks
+
+    if (type === 'superLike') {
+      return `rgba(22, 163, 74, ${intensity})`;
+    } else if (type === 'up') {
+      return `rgba(234, 179, 8, ${intensity})`;
+    } else if (type === 'neutral') {
+      return `rgba(239, 68, 68, ${intensity})`;
+    }
+    return 'transparent';
   };
 
   return (
@@ -37,7 +61,11 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-10 touch-none min-h-[420px] flex flex-col"
-      style={{ touchAction: 'none' }}
+      style={{ 
+        touchAction: 'none',
+        backgroundColor: getBackgroundColor(),
+        transition: 'background-color 0.3s ease'
+      }}
       animate={controls}
     >
       <div className="flex-grow">
