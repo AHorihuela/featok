@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { MenuButton } from '@/components/ui/menu-button';
+import { AppMenu } from '@/components/ui/app-menu';
 import { IdeaCard } from '@/components/ui/idea-card';
 import { useVoting } from '@/hooks/useVoting';
 import { useSwipeGesture } from '@/hooks/useSwipeGesture';
@@ -163,8 +163,6 @@ export default function SwipePage({ params }: PageProps) {
 
         <SwipeInstructions show={showInstructions} />
 
-        {isCreator && <MenuButton groupId={id} />}
-
         <div className="h-[calc(100vh-320px)] relative flex items-center justify-center mt-8">
           <motion.div
             drag={!voteConfirmation}
@@ -199,6 +197,7 @@ export default function SwipePage({ params }: PageProps) {
         </div>
       </div>
 
+      <AppMenu groupId={id} />
       <VoteToast voteConfirmation={voteConfirmation} />
       <UndoButton lastVote={lastVote} onUndo={handleUndo} />
     </main>
