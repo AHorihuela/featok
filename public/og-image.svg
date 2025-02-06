@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#3B82F6"/>
+  
+  <!-- Background Pattern -->
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H1200V630H0V0ZM600 157.5C646.944 157.5 685 195.556 685 242.5C685 289.444 646.944 327.5 600 327.5C553.056 327.5 515 289.444 515 242.5C515 195.556 553.056 157.5 600 157.5ZM600 367.5C693.888 367.5 770 443.612 770 537.5H430C430 443.612 506.112 367.5 600 367.5Z" fill="white" fill-opacity="0.1"/>
+  
+  <!-- Logo -->
+  <g transform="translate(150, 215) scale(0.4)">
+    <rect width="512" height="512" rx="128" fill="white"/>
+    <path d="M256 128C238.327 128 224 142.327 224 160V352C224 369.673 238.327 384 256 384C273.673 384 288 369.673 288 352V160C288 142.327 273.673 128 256 128Z" fill="#3B82F6"/>
+    <path d="M384 224C366.327 224 352 238.327 352 256V352C352 369.673 366.327 384 384 384C401.673 384 416 369.673 416 352V256C416 238.327 401.673 224 384 224Z" fill="#3B82F6" fill-opacity="0.9"/>
+    <path d="M128 288C110.327 288 96 302.327 96 320V352C96 369.673 110.327 384 128 384C145.673 384 160 369.673 160 352V320C160 302.327 145.673 288 128 288Z" fill="#3B82F6" fill-opacity="0.8"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="450" y="280" fill="white" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold">Featok</text>
+  <text x="450" y="350" fill="white" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="normal">Product Idea Voting Platform</text>
+</svg> 
