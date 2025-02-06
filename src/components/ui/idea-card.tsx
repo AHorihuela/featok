@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { ProductIdea, VoteType } from '@/types/ideas';
 
 interface IdeaCardProps {
@@ -8,6 +8,29 @@ interface IdeaCardProps {
 }
 
 export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
+  const controls = useAnimation();
+
+  const handleButtonVote = async (type: VoteType) => {
+    // Define animation properties based on vote type
+    const animationProps = {
+      superLike: { x: 1000, y: 0, rotate: 30, opacity: 0 },
+      up: { x: 0, y: -1000, rotate: 0, opacity: 0 },
+      neutral: { x: -1000, y: 0, rotate: -30, opacity: 0 },
+    }[type];
+
+    // Animate the card
+    await controls.start({
+      ...animationProps,
+      transition: { duration: 0.5 },
+    });
+
+    // Submit the vote
+    await onVote(type);
+
+    // Reset the card position
+    await controls.set({ x: 0, y: 0, rotate: 0, opacity: 1 });
+  };
+
   return (
     <motion.div
       key="card"
@@ -15,17 +38,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
       exit={{ opacity: 0 }}
       className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-10 touch-none min-h-[420px] flex flex-col"
       style={{ touchAction: 'none' }}
-      animate={{
-        rotate: swipeDirection === 'superLike'
-          ? 15
-          : swipeDirection === 'neutral'
-            ? -15
-            : swipeDirection === 'up'
-              ? 0
-              : 0,
-        y: swipeDirection === 'up' ? -20 : 0,
-        transition: { type: "spring", stiffness: 300, damping: 20 }
-      }}
+      animate={controls}
     >
       <div className="flex-grow">
         <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -38,7 +51,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
 
       <div className="grid grid-cols-3 gap-4 mt-8">
         <motion.button
-          onClick={() => onVote('neutral')}
+          onClick={() => handleButtonVote('neutral')}
           className="w-full py-4 px-4 rounded-2xl bg-red-50 text-red-500 font-medium text-lg hover:bg-red-100 transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -46,7 +59,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
           🤷 Meh
         </motion.button>
         <motion.button
-          onClick={() => onVote('up')}
+          onClick={() => handleButtonVote('up')}
           className="w-full py-4 px-4 rounded-2xl bg-yellow-50 text-yellow-600 font-medium text-lg hover:bg-yellow-100 transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -54,7 +67,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
           😊 Neat
         </motion.button>
         <motion.button
-          onClick={() => onVote('superLike')}
+          onClick={() => handleButtonVote('superLike')}
           className="w-full py-4 px-4 rounded-2xl bg-green-50 text-green-500 font-medium text-lg hover:bg-green-100 transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

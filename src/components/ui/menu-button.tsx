@@ -32,27 +32,28 @@ export function MenuButton({ groupId }: MenuButtonProps) {
               return (
                 <motion.button
                   key={item.label}
-                  className="absolute w-auto min-w-[160px] h-12 bg-white dark:bg-gray-800 rounded-full flex items-center gap-3 px-4 shadow-lg"
-                  initial={{ y: 0, opacity: 0 }}
+                  className="absolute w-auto min-w-[180px] h-14 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl flex items-center gap-3 px-6 shadow-lg border border-gray-100 dark:border-gray-700"
+                  initial={{ y: 0, opacity: 0, scale: 0.8 }}
                   animate={{
-                    y: -((index + 1) * 44),
+                    y: -((index + 1) * 60),
                     opacity: 1,
+                    scale: 1,
                   }}
                   exit={{
                     y: 0,
                     opacity: 0,
+                    scale: 0.8,
                     transition: {
                       delay: (MENU_ITEMS.length - index) * 0.05,
-                      duration: 0.4,
-                      type: "spring",
-                      bounce: 0,
+                      duration: 0.3,
+                      ease: "backIn",
                     },
                   }}
                   transition={{
                     delay: index * 0.05,
                     duration: 0.4,
                     type: "spring",
-                    bounce: 0,
+                    bounce: 0.3,
                   }}
                   onClick={() => {
                     setIsOpen(false)
@@ -62,8 +63,10 @@ export function MenuButton({ groupId }: MenuButtonProps) {
                       router.push(item.href)
                     }
                   }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <span className="text-2xl">{item.icon}</span>
                   <span className="text-gray-700 dark:text-gray-200 font-medium">
                     {item.label}
                   </span>
@@ -74,29 +77,31 @@ export function MenuButton({ groupId }: MenuButtonProps) {
 
         {/* Main Menu Button */}
         <motion.button
-          className="relative w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg group"
+          className="relative w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl flex items-center justify-center shadow-lg group hover:shadow-blue-500/25"
           onClick={() => setIsOpen(!isOpen)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
               <motion.div
                 key="close"
-                initial={{ opacity: 0, filter: "blur(10px)" }}
-                animate={{ opacity: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, filter: "blur(10px)" }}
+                initial={{ opacity: 0, rotate: -90 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: 90 }}
                 transition={{ duration: 0.2 }}
               >
-                <X className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                <X className="w-5 h-5 text-white" />
               </motion.div>
             ) : (
               <motion.div
                 key="menu"
-                initial={{ opacity: 0, filter: "blur(10px)" }}
-                animate={{ opacity: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, filter: "blur(10px)" }}
+                initial={{ opacity: 0, rotate: 90 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: -90 }}
                 transition={{ duration: 0.2 }}
               >
-                <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                <Menu className="w-5 h-5 text-white" />
               </motion.div>
             )}
           </AnimatePresence>
