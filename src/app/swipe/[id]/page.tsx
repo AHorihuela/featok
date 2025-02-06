@@ -218,7 +218,7 @@ export default function SwipePage({ params }: PageProps) {
             {ideas.map(idea => (
               <div
                 key={idea._id}
-                className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow"
+                className="bg-white rounded-lg p-4 shadow"
               >
                 <h3 className="font-medium">{idea.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">

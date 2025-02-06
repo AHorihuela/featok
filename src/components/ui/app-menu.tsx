@@ -103,7 +103,7 @@ export function AppMenu({ groupId }: AppMenuProps) {
               return (
                 <motion.button
                   key={item.label}
-                  className="absolute w-auto min-w-[180px] h-14 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl flex items-center gap-3 px-6 shadow-lg border border-gray-100 dark:border-gray-700"
+                  className="absolute w-auto min-w-[180px] h-14 bg-gradient-to-r from-white to-gray-50 rounded-2xl flex items-center gap-3 px-6 shadow-lg border border-gray-100"
                   initial={{ y: 0, opacity: 0, scale: 0.8 }}
                   animate={{
                     y: -((index + 1) * 60),
@@ -134,7 +134,7 @@ export function AppMenu({ groupId }: AppMenuProps) {
                   whileTap={{ scale: 0.95 }}
                 >
                   <span className="text-2xl">{item.icon}</span>
-                  <span className="text-gray-700 dark:text-gray-200 font-medium">
+                  <span className="text-gray-700 font-medium">
                     {item.label}
                   </span>
                 </motion.button>
@@ -144,7 +144,7 @@ export function AppMenu({ groupId }: AppMenuProps) {
 
         {/* Main Menu Button */}
         <motion.button
-          className="relative w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl flex items-center justify-center shadow-lg group hover:shadow-blue-500/25"
+          className="relative w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group hover:shadow-blue-500/25"
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

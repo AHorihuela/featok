@@ -57,7 +57,7 @@ export function IdeaCard({
               filter: `brightness(${1 - (index + 1) * 0.05})`,
             }}
           >
-            <div className="min-h-[420px] w-full bg-white dark:bg-gray-800 rounded-[32px] p-8 flex flex-col shadow-md" />
+            <div className="min-h-[420px] w-full bg-white rounded-[32px] p-8 flex flex-col shadow-md" />
           </div>
         ))}
 
@@ -73,13 +73,13 @@ export function IdeaCard({
           }}
           {...dragProps}
         >
-          <div className={`min-h-[420px] w-full bg-white dark:bg-gray-800 rounded-[32px] p-8 flex flex-col shadow-lg ${isVoting ? 'opacity-75' : ''}`}>
+          <div className={`min-h-[420px] w-full bg-white rounded-[32px] p-8 flex flex-col shadow-lg ${isVoting ? 'opacity-75' : ''}`}>
             <div className="flex-grow flex flex-col items-center justify-center text-center">
-              <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              <h2 className="text-4xl font-bold mb-4 text-gray-900">
                 {idea.title}
               </h2>
               {idea.description && (
-                <p className="text-gray-500 dark:text-gray-400 text-xl">
+                <p className="text-gray-500 text-xl">
                   {idea.description}
                 </p>
               )}
@@ -92,8 +92,8 @@ export function IdeaCard({
         <motion.button
           onClick={() => handleButtonVote('neutral')}
           className="flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-2xl
-            bg-white dark:bg-gray-800 text-red-500 font-medium 
-            hover:bg-red-50 dark:hover:bg-red-900/20 
+            bg-white text-red-500 font-medium 
+            hover:bg-red-50
             shadow-lg hover:shadow-xl transition-all duration-200
             disabled:opacity-50"
           whileHover={{ scale: isVoting ? 1 : 1.05 }}
@@ -106,8 +106,8 @@ export function IdeaCard({
         <motion.button
           onClick={() => handleButtonVote('up')}
           className="flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-2xl
-            bg-white dark:bg-gray-800 text-yellow-600 font-medium 
-            hover:bg-yellow-50 dark:hover:bg-yellow-900/20
+            bg-white text-yellow-600 font-medium 
+            hover:bg-yellow-50
             shadow-lg hover:shadow-xl transition-all duration-200
             disabled:opacity-50"
           whileHover={{ scale: isVoting ? 1 : 1.05 }}
@@ -120,8 +120,8 @@ export function IdeaCard({
         <motion.button
           onClick={() => handleButtonVote('superLike')}
           className="flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-2xl
-            bg-white dark:bg-gray-800 text-green-500 font-medium 
-            hover:bg-green-50 dark:hover:bg-green-900/20
+            bg-white text-green-500 font-medium 
+            hover:bg-green-50
             shadow-lg hover:shadow-xl transition-all duration-200
             disabled:opacity-50"
           whileHover={{ scale: isVoting ? 1 : 1.05 }}
