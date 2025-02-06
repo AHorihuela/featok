@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -84,10 +82,7 @@ export const metadata: Metadata = {
     maximumScale: 1,
     userScalable: false,
   },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
-  ],
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({
@@ -96,7 +91,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
@@ -105,10 +100,7 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#3B82F6" />
       </head>
       <body className={GeistSans.className}>
-        <ThemeProvider>
-          {children}
-          <ThemeToggle />
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

@@ -72,7 +72,6 @@ A modern, user-friendly platform for submitting and voting on product ideas with
 - `/api/ideas/creator/[id]` (GET) - Fetch creator's ideas
 
 ### UI/UX Principles
-- Dark/Light theme support with system preference detection
 - Responsive design with mobile-first approach
 - Smooth animations using Framer Motion
 - Clear visual feedback for all interactions
@@ -161,18 +160,10 @@ A modern, user-friendly platform for submitting and voting on product ideas with
   - Other configuration
 
 ## Future Considerations
-1. Edit functionality for creators
-2. List view of created groups
-3. Analytics for idea performance
-4. Share functionality improvements
-5. Optional user accounts
-6. Enhanced voting analytics
-
-## Development Environment
-- Node.js
-- MongoDB
-- Next.js 14
-- React
-- TypeScript
-- Tailwind CSS
-- Framer Motion 
+1. Dark/Light theme support
+2. Edit functionality for creators
+3. List view of created groups
+4. Analytics for idea performance
+5. Share functionality improvements
+6. Optional user accounts
+7. Enhanced voting analytics 
