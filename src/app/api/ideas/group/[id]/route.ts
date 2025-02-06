@@ -250,38 +250,125 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
   try {
     const id = request.url.split('/').pop();
-    await connectDB();
+    
+    if (!isValidId(id)) {
+      return createErrorResponse(
+        { message: 'Invalid group ID', code: 'INVALID_ID' },
+        400
+      );
+    }
+
+    try {
+      await connectDB();
+    } catch (error) {
+      console.error('Database connection error:', error instanceof Error ? error.message : error);
+      return createErrorResponse(
+        { 
+          message: 'Database connection failed', 
+          code: 'DB_CONNECTION_ERROR',
+          details: error instanceof Error ? error.message : String(error)
+        },
+        503
+      );
+    }
 
     // Verify creator
-    const { creatorId } = await request.json();
-    const ideas = await ProductIdea.find({ groupId: id });
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return createErrorResponse(
+        { message: 'Invalid request body', code: 'INVALID_JSON' },
+        400
+      );
+    }
+
+    const { creatorId } = body;
+    if (!creatorId) {
+      return createErrorResponse(
+        { message: 'Creator ID is required', code: 'MISSING_CREATOR_ID' },
+        400
+      );
+    }
+
+    let ideas;
+    try {
+      ideas = await ProductIdea.find({ groupId: id }).maxTimeMS(5000);
+    } catch (error) {
+      console.error('Query error:', error instanceof Error ? error.message : error);
+      return createErrorResponse(
+        { 
+          message: 'Failed to verify ownership', 
+          code: 'QUERY_ERROR',
+          details: error instanceof Error ? error.message : String(error)
+        },
+        500
+      );
+    }
 
     if (!ideas || ideas.length === 0) {
-      return NextResponse.json(
-        { message: 'No ideas found in this group' },
-        { status: 404 }
+      return createErrorResponse(
+        { message: 'Group not found', code: 'NOT_FOUND' },
+        404
       );
     }
 
-    // Check if user is the creator
     if (ideas[0].creatorId !== creatorId) {
-      return NextResponse.json(
-        { message: 'Unauthorized to delete this group' },
-        { status: 403 }
+      return createErrorResponse(
+        { message: 'Unauthorized to delete this group', code: 'UNAUTHORIZED' },
+        403
       );
     }
 
-    // Delete all ideas in the group
-    await ProductIdea.deleteMany({ groupId: id });
+    try {
+      // Delete all ideas in the group
+      const deleteResult = await ProductIdea.deleteMany({ groupId: id });
+      
+      // Verify deletion
+      const remainingIdeas = await ProductIdea.countDocuments({ groupId: id });
+      if (remainingIdeas > 0) {
+        console.error('Some ideas were not deleted:', { groupId: id, remainingCount: remainingIdeas });
+        return createErrorResponse(
+          { 
+            message: 'Failed to delete all ideas in the group', 
+            code: 'PARTIAL_DELETE',
+            details: { remainingCount: remainingIdeas }
+          },
+          500
+        );
+      }
 
-    return NextResponse.json({ message: 'Group deleted successfully' });
+      return NextResponse.json({
+        message: 'Group deleted successfully',
+        deletedCount: deleteResult.deletedCount
+      });
+    } catch (error) {
+      console.error('Delete error:', error instanceof Error ? error.message : error);
+      return createErrorResponse(
+        { 
+          message: 'Failed to delete group', 
+          code: 'DELETE_ERROR',
+          details: error instanceof Error ? error.message : String(error)
+        },
+        500
+      );
+    }
   } catch (error) {
-    console.error('Failed to delete group:', error);
-    return NextResponse.json(
-      { message: 'Failed to delete group' },
-      { status: 500 }
+    console.error('Unexpected error:', error instanceof Error ? error.message : error);
+    return createErrorResponse(
+      { 
+        message: 'An unexpected error occurred',
+        code: 'INTERNAL_ERROR',
+        details: error instanceof Error ? error.message : undefined
+      },
+      500
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

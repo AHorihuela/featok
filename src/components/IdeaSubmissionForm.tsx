@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CREATOR_ID_KEY } from '@/components/ui/app-init';
 
 interface IdeaInput {
   title: string;
@@ -15,8 +16,6 @@ interface Toast {
   type: 'success' | 'error';
 }
 
-const CREATOR_ID_KEY = 'featok_creator_id';
-
 export default function IdeaSubmissionForm() {
   const [ideas, setIdeas] = useState<IdeaInput[]>([]);
   const [currentInput, setCurrentInput] = useState('');
@@ -24,15 +23,6 @@ export default function IdeaSubmissionForm() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
-
-  // Get or create creator ID on mount
-  useEffect(() => {
-    let creatorId = localStorage.getItem(CREATOR_ID_KEY);
-    if (!creatorId) {
-      creatorId = `creator_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
-      localStorage.setItem(CREATOR_ID_KEY, creatorId);
-    }
-  }, []);
 
   // Auto-resize textarea as content grows
   useEffect(() => {

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
+import { AppInit } from '@/components/ui/app-init';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -100,6 +101,7 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#3B82F6" />
       </head>
       <body className={GeistSans.className}>
+        <AppInit />
         {children}
       </body>
     </html>
