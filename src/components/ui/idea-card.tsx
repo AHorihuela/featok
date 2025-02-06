@@ -1,7 +1,6 @@
 import { motion, useAnimation } from 'framer-motion';
 import { ProductIdea, VoteType } from '@/types/ideas';
 import { useState } from 'react';
-import { ShineBorder } from './shine-border';
 
 interface IdeaCardProps {
   idea: ProductIdea;
@@ -9,51 +8,24 @@ interface IdeaCardProps {
   onVote: (type: VoteType) => Promise<void>;
 }
 
-export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
+export function IdeaCard({ idea, onVote }: IdeaCardProps) {
   const controls = useAnimation();
-  const [buttonVoteType, setButtonVoteType] = useState<VoteType | null>(null);
 
   const handleButtonVote = async (type: VoteType) => {
-    // Set the vote type to trigger background animation
-    setButtonVoteType(type);
-
-    // Define animation properties based on vote type
     const animationProps = {
       superLike: { x: 1000, y: 0, rotate: 30, opacity: 0 },
       up: { x: 0, y: -1000, rotate: 0, opacity: 0 },
       neutral: { x: -1000, y: 0, rotate: -30, opacity: 0 },
     }[type];
 
-    // Wait a bit to show the background color
     await new Promise(resolve => setTimeout(resolve, 200));
-
-    // Animate the card
     await controls.start({
       ...animationProps,
       transition: { duration: 0.5 },
     });
 
-    // Submit the vote
     await onVote(type);
-
-    // Reset the card position and background
     await controls.set({ x: 0, y: 0, rotate: 0, opacity: 1 });
-    setButtonVoteType(null);
-  };
-
-  // Calculate background color based on vote type and intensity
-  const getBorderColor = () => {
-    const type = buttonVoteType || swipeDirection;
-    const intensity = buttonVoteType ? 0.15 : 0; // Full intensity for button clicks
-
-    if (type === 'superLike') {
-      return `rgba(22, 163, 74, ${intensity})`;
-    } else if (type === 'up') {
-      return `rgba(234, 179, 8, ${intensity})`;
-    } else if (type === 'neutral') {
-      return `rgba(239, 68, 68, ${intensity})`;
-    }
-    return '#e2e8f0';
   };
 
   return (
@@ -64,13 +36,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
       animate={controls}
       className="w-full max-w-md mx-auto"
     >
-      <ShineBorder
-        className="min-h-[420px] w-full bg-white dark:bg-gray-800 p-8 flex flex-col"
-        color={getBorderColor()}
-        borderRadius={32}
-        borderWidth={1}
-        duration={4}
-      >
+      <div className="min-h-[420px] w-full bg-white dark:bg-gray-800 rounded-[32px] p-8 flex flex-col shadow-lg">
         <div className="flex-grow flex flex-col items-center justify-center text-center">
           <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
             {idea.title}
@@ -111,7 +77,7 @@ export function IdeaCard({ idea, swipeDirection, onVote }: IdeaCardProps) {
             <span>Love</span>
           </motion.button>
         </div>
-      </ShineBorder>
+      </div>
     </motion.div>
   );
 } 

@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Featok - Interactive Product Idea Voting Platform
+
+A modern web application for collecting and voting on product ideas, built with Next.js, TypeScript, and MongoDB. Features a Tinder-like swipe interface and real-time vote tracking.
+
+## Features
+
+- 🎯 No account required - instant idea submission
+- 👆 Intuitive swipe/click voting interface
+- 📊 Real-time vote tracking and statistics
+- 🌓 Dark/Light mode support
+- 📱 Fully responsive design
+- 🔄 Undo vote functionality
+- 📋 Bulk idea submission
+- 📊 Detailed voting analytics
+- 🔗 Shareable links for idea groups
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS, Framer Motion
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB
+- **Styling**: Tailwind CSS with custom animations
+- **State Management**: React Hooks
+- **Animations**: Framer Motion
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/featok.git
+   cd featok
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env.local` file with your MongoDB connection string:
+   ```
+   MONGODB_URI=your_mongodb_connection_string
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment Recommendations
+
+For free hosting, here are the best options:
+
+1. **Vercel** (Recommended):
+   - Perfect for Next.js applications
+   - Built-in CI/CD
+   - Automatic HTTPS
+   - Edge network deployment
+   - Free tier includes:
+     - Unlimited websites
+     - Automatic deployments
+     - Preview deployments
+     - Basic analytics
+
+2. **MongoDB Atlas** (Database):
+   - Free tier includes:
+     - 512MB storage
+     - Shared clusters
+     - Basic monitoring
+     - Automated backups
+
+Steps to deploy:
+1. Push your code to GitHub
+2. Connect your GitHub repository to Vercel
+3. Add your MongoDB Atlas connection string to Vercel environment variables
+4. Deploy!
+
+Alternative hosting options:
+- **Netlify**: Similar to Vercel, good free tier
+- **Railway**: Good for full-stack apps, includes database hosting
+- **Render**: Offers free static site hosting and database options
+
+## Project Structure
+
+```
+src/
+├── app/                 # Next.js 14 app directory
+│   ├── api/            # API routes
+│   ├── swipe/          # Swipe interface
+│   ├── edit/           # Edit interface
+│   └── my-lists/       # Lists management
+├── components/         
+│   └── ui/             # Reusable UI components
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+├── models/             # MongoDB models
+└── types/              # TypeScript types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Contributing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
 
-## Learn More
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-To learn more about Next.js, take a look at the following resources:
+## Acknowledgments
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js team for the amazing framework
+- Framer Motion for the smooth animations
+- Tailwind CSS for the utility-first CSS framework
+- MongoDB team for the database solution

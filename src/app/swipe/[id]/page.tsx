@@ -35,6 +35,7 @@ export default function SwipePage({ params }: PageProps) {
   const [isCreator, setIsCreator] = useState(false);
   const controls = useAnimation();
   const [showInstructions, setShowInstructions] = useState(true);
+  const [buttonVoteType, setButtonVoteType] = useState<'superLike' | 'up' | 'neutral' | null>(null);
 
   const {
     currentIndex,
@@ -49,7 +50,10 @@ export default function SwipePage({ params }: PageProps) {
     dragIntensity,
     handleDrag,
     handleDragEnd,
-  } = useSwipeGesture(controls, handleVote);
+  } = useSwipeGesture(controls, async (type) => {
+    await handleVote(type);
+    setButtonVoteType(null);
+  });
 
   useEffect(() => {
     if (showInstructions) {
@@ -101,6 +105,19 @@ export default function SwipePage({ params }: PageProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getBackgroundColor = () => {
+    if (swipeDirection === 'superLike' || buttonVoteType === 'superLike') {
+      return `rgba(22, 163, 74, ${dragIntensity * 0.15})`;
+    }
+    if (swipeDirection === 'up' || buttonVoteType === 'up') {
+      return `rgba(234, 179, 8, ${dragIntensity * 0.15})`;
+    }
+    if (swipeDirection === 'neutral' || buttonVoteType === 'neutral') {
+      return `rgba(239, 68, 68, ${dragIntensity * 0.15})`;
+    }
+    return 'rgb(249, 250, 251)';
   };
 
   if (isLoading) {
@@ -167,15 +184,9 @@ export default function SwipePage({ params }: PageProps) {
 
   return (
     <main 
-      className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden"
+      className="min-h-screen overflow-hidden transition-colors duration-300"
       style={{
-        backgroundColor: swipeDirection === 'superLike' 
-          ? `rgba(22, 163, 74, ${dragIntensity * 0.15})`
-          : swipeDirection === 'up'
-            ? `rgba(234, 179, 8, ${dragIntensity * 0.15})`
-            : swipeDirection === 'neutral'
-              ? `rgba(239, 68, 68, ${dragIntensity * 0.15})`
-              : 'rgb(249, 250, 251)'
+        backgroundColor: getBackgroundColor(),
       }}
     >
       <div className="max-w-lg mx-auto px-6 py-8">
@@ -220,7 +231,11 @@ export default function SwipePage({ params }: PageProps) {
             <IdeaCard
               idea={currentIdea}
               swipeDirection={swipeDirection}
-              onVote={handleVote}
+              onVote={async (type) => {
+                setButtonVoteType(type);
+                await handleVote(type);
+                setButtonVoteType(null);
+              }}
             />
           </motion.div>
         </div>
