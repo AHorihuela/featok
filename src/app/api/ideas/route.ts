@@ -32,35 +32,51 @@ export async function POST(req: Request) {
       }
     }
 
-    // Connect to database
-    await connectDB();
+    try {
+      // Connect to database
+      await connectDB();
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return NextResponse.json(
+        { message: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
 
     // Generate a unique group ID for this set of ideas
     const groupId = nanoid(10);
 
-    // Create all ideas with the same group ID
-    const createdIdeas = await Promise.all(
-      ideas.map((idea, index) =>
-        ProductIdea.create({
-          title: idea.title,
-          description: idea.description,
-          shareableId: nanoid(10),
-          groupId,
-          creatorId,
-          order: index,
-        })
-      )
-    );
+    try {
+      // Create all ideas with the same group ID
+      const createdIdeas = await Promise.all(
+        ideas.map((idea, index) =>
+          ProductIdea.create({
+            title: idea.title,
+            description: idea.description,
+            shareableId: nanoid(10),
+            groupId,
+            creatorId,
+            order: index,
+          })
+        )
+      );
 
-    return NextResponse.json({
-      message: 'Ideas submitted successfully',
-      groupId,
-      count: createdIdeas.length,
-    });
+      return NextResponse.json({
+        message: 'Ideas submitted successfully',
+        groupId,
+        count: createdIdeas.length,
+      });
+    } catch (dbError) {
+      console.error('Failed to create ideas:', dbError);
+      return NextResponse.json(
+        { message: 'Failed to save ideas to database' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error('Failed to submit ideas:', error);
+    console.error('Request processing error:', error);
     return NextResponse.json(
-      { message: 'Failed to submit ideas' },
+      { message: 'Failed to process request' },
       { status: 500 }
     );
   }

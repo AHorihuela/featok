@@ -35,10 +35,22 @@ export function useVoting(ideas: ProductIdea[], setIdeas: React.Dispatch<React.S
       );
 
       if (!response.ok) {
-        throw new Error('Failed to submit vote');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to submit vote' }));
+        throw new Error(errorData.message || 'Failed to submit vote');
       }
 
-      const updatedIdea = await response.json() as ProductIdea;
+      let updatedIdea: ProductIdea;
+      try {
+        updatedIdea = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        throw new Error('Invalid response from server');
+      }
+
+      if (!updatedIdea || !updatedIdea.shareableId) {
+        throw new Error('Invalid idea data received from server');
+      }
+
       console.log('Vote recorded: ', { updatedIdea });
 
       // Update the ideas array with the new vote counts
