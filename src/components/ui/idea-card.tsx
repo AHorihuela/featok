@@ -3,7 +3,6 @@ import { ProductIdea, VoteType } from '@/types/ideas';
 
 interface IdeaCardProps {
   idea: ProductIdea;
-  swipeDirection: VoteType | null;
   onVote: (type: VoteType) => Promise<void>;
   isVoting?: boolean;
   remainingCount?: number;
@@ -12,7 +11,6 @@ interface IdeaCardProps {
 
 export function IdeaCard({ 
   idea, 
-  swipeDirection, 
   onVote, 
   isVoting = false, 
   remainingCount = 0,
@@ -26,20 +24,47 @@ export function IdeaCard({
   const handleButtonVote = async (type: VoteType) => {
     if (isVoting) return;
 
+    // Define animations that match the swipe gestures
     const animationProps = {
-      superLike: { x: 1000, y: 0, rotate: 30, opacity: 0 },
-      up: { x: 0, y: -1000, rotate: 0, opacity: 0 },
-      neutral: { x: -1000, y: 0, rotate: -30, opacity: 0 },
+      superLike: { 
+        x: 1000, 
+        y: 0, 
+        rotate: 30, 
+        opacity: 0,
+        transition: { duration: 0.5, ease: [0.32, 0.72, 0, 1] }
+      },
+      up: { 
+        x: 0, 
+        y: -1000, 
+        rotate: 0, 
+        opacity: 0,
+        transition: { duration: 0.5, ease: [0.32, 0.72, 0, 1] }
+      },
+      neutral: { 
+        x: -1000, 
+        y: 0, 
+        rotate: -30, 
+        opacity: 0,
+        transition: { duration: 0.5, ease: [0.32, 0.72, 0, 1] }
+      }
     }[type];
 
-    await new Promise(resolve => setTimeout(resolve, 200));
-    await controls.start({
-      ...animationProps,
-      transition: { duration: 0.5 },
-    });
+    // Start with a small scale animation
+    await controls.start({ scale: 0.95, transition: { duration: 0.1 } });
+    
+    // Then animate in the direction of the vote
+    await controls.start(animationProps);
 
     await onVote(type);
-    await controls.set({ x: 0, y: 0, rotate: 0, opacity: 1 });
+    
+    // Reset the card position and scale
+    await controls.set({ 
+      x: 0, 
+      y: 0, 
+      rotate: 0, 
+      opacity: 1,
+      scale: 1 
+    });
   };
 
   // Create an array for background cards (max 3)
