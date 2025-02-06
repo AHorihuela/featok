@@ -12,6 +12,8 @@ import { LoadingAnimation } from '@/components/ui/loading-animation';
 import { VoteToast } from '@/components/ui/vote-toast';
 import { UndoButton } from '@/components/ui/undo-button';
 import { SwipeInstructions } from '@/components/ui/swipe-instructions';
+import { CompletionScreen } from '@/components/ui/completion-screen';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -189,84 +191,87 @@ export default function SwipePage({ params }: PageProps) {
 
   if (currentIndex >= ideas.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-2xl mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-4">All Done! 🎉</h1>
-          <p className="text-gray-600 mb-8">
-            You&apos;ve voted on all the ideas in this group.
-          </p>
-          
-          {isCreator && (
-            <div className="flex justify-center gap-4 mb-8">
-              <button
-                onClick={() => router.push(`/edit/${id}`)}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Edit List
-              </button>
-              <button
-                onClick={() => router.push('/my-lists')}
-                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-              >
-                Manage Lists
-              </button>
-            </div>
-          )}
-          
-          <div className="mt-8 space-y-4">
-            <h2 className="text-xl font-semibold">Final Results:</h2>
-            {ideas.map(idea => (
-              <div
-                key={idea._id}
-                className="bg-white rounded-lg p-4 shadow"
-              >
-                <h3 className="font-medium">{idea.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  ❤️ {idea.votes.superLike} | 👍 {idea.votes.up} | 🤷 {idea.votes.neutral}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <CompletionScreen 
+        ideas={ideas}
+        isCreator={isCreator}
+        onEdit={() => router.push(`/edit/${id}`)}
+        onManage={() => router.push('/my-lists')}
+      />
     );
   }
 
   const currentIdea = ideas[currentIndex];
 
   return (
-    <main 
+    <motion.main 
       className="min-h-screen overflow-hidden transition-colors duration-300"
       style={{
         backgroundColor: getBackgroundColor(),
       }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
     >
       <div className="max-w-lg mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <motion.div 
+          className="flex justify-between items-center mb-4"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
+          <motion.h1 
+            className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
             {groupTitle}
-          </h1>
-          <div className="flex items-center gap-2">
+          </motion.h1>
+          <motion.div 
+            className="flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
             <span className="font-medium text-gray-400">{currentIndex + 1}</span>
             <span className="text-gray-300">/</span>
             <span className="font-medium text-gray-500">
               {ideas.length}
             </span>
             {hasRetries && (
-              <span className="text-yellow-500 text-sm ml-2">
+              <motion.span 
+                className="text-yellow-500 text-sm ml-2"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+              >
                 Retrying votes...
-              </span>
+              </motion.span>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <SwipeInstructions show={showInstructions} />
+        <AnimatePresence>
+          {showInstructions && <SwipeInstructions show={showInstructions} />}
+        </AnimatePresence>
 
-        <div className="h-[calc(100vh-320px)] relative flex items-center justify-center mt-8">
+        <motion.div 
+          className="h-[calc(100vh-320px)] relative flex items-center justify-center mt-8"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+        >
           {isLoadingMore && currentIndex === ideas.length - 1 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-3xl">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
+            <motion.div 
+              className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-3xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div 
+                className="rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+            </motion.div>
           )}
           
           <IdeaCard
@@ -288,9 +293,19 @@ export default function SwipePage({ params }: PageProps) {
               whileDrag: {
                 cursor: "grabbing",
                 scale: 1.02,
+                transformOrigin: "center center",
+                perspective: 1000,
+              },
+              whileHover: {
+                scale: 1.02,
+                transition: {
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 25
+                }
               },
               style: { 
-                transformOrigin: "bottom center",
+                transformOrigin: "center center",
                 transform: `perspective(1000px)`,
                 cursor: "grab",
                 touchAction: "none"
@@ -299,12 +314,12 @@ export default function SwipePage({ params }: PageProps) {
               onHoverStart: () => setShowInstructions(false),
             }}
           />
-        </div>
+        </motion.div>
       </div>
 
       <AppMenu groupId={id} />
       <VoteToast voteConfirmation={voteConfirmation} />
       <UndoButton lastVote={lastVote} onUndo={handleUndo} />
-    </main>
+    </motion.main>
   );
 }

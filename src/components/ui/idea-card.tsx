@@ -1,4 +1,4 @@
-import { motion, useAnimation, MotionProps } from 'framer-motion';
+import { motion, useAnimation, MotionProps, useMotionValue, useTransform } from 'framer-motion';
 import { ProductIdea, VoteType } from '@/types/ideas';
 
 interface IdeaCardProps {
@@ -19,6 +19,9 @@ export function IdeaCard({
   dragProps 
 }: IdeaCardProps) {
   const controls = useAnimation();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateZ = useTransform(x, [-200, 200], [-30, 30]);
 
   const handleButtonVote = async (type: VoteType) => {
     if (isVoting) return;
@@ -67,11 +70,20 @@ export function IdeaCard({
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           animate={controls}
-          className="relative z-10 w-full touch-none"
           style={{
+            x,
+            y,
+            rotateZ,
+            transformOrigin: "center center",
+            perspective: 1000,
             filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1))',
           }}
+          className="relative z-10 w-full touch-none"
           {...dragProps}
+          onDrag={(e, info) => {
+            x.set(info.offset.x);
+            dragProps?.onDrag?.(e, info);
+          }}
         >
           <div className={`min-h-[420px] w-full bg-white rounded-[32px] p-8 flex flex-col shadow-lg ${isVoting ? 'opacity-75' : ''}`}>
             <div className="flex-grow flex flex-col items-center justify-center text-center">

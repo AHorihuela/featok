@@ -67,10 +67,33 @@ export default function MyLists() {
 
   const handleCopyLink = (groupId: string) => {
     const url = `${window.location.origin}/swipe/${groupId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopiedId(groupId);
-      setTimeout(() => setCopiedId(null), 2000);
-    });
+    
+    // Try using the modern clipboard API first
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopiedId(groupId);
+        setTimeout(() => setCopiedId(null), 2000);
+      });
+    } else {
+      // Fallback: Create a temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed'; // Avoid scrolling to bottom
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      try {
+        document.execCommand('copy');
+        setCopiedId(groupId);
+        setTimeout(() => setCopiedId(null), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
   };
 
   const handleDelete = async (groupId: string) => {

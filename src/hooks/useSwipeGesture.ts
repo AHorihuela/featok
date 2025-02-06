@@ -17,6 +17,16 @@ export function useSwipeGesture(
     const xOffset = info.offset.x;
     const yOffset = info.offset.y;
 
+    // Calculate rotation based on drag distance (clamped between -30 and 30 degrees)
+    const rotate = Math.min(Math.max(xOffset * 0.1, -30), 30);
+
+    // Simple position and rotation update without spring physics
+    controls.set({ 
+      x: xOffset, 
+      y: yOffset,
+      rotate
+    });
+
     let intensity = 0;
 
     if (Math.abs(xOffset) > Math.abs(yOffset)) {
@@ -65,13 +75,28 @@ export function useSwipeGesture(
       await controls.start({
         ...animationProps,
         opacity: 0,
-        transition: { duration: SWIPE_ANIMATIONS.ANIMATION_DURATION },
+        scale: 0.8,
+        transition: { 
+          duration: SWIPE_ANIMATIONS.ANIMATION_DURATION,
+          ease: [0.32, 0.72, 0, 1]
+        },
       });
 
       await handleVote(direction);
-      await controls.set({ x: 0, y: 0, rotate: 0, opacity: 1 });
+      await controls.set({ x: 0, y: 0, rotate: 0, opacity: 1, scale: 1 });
     } else {
-      controls.start({ x: 0, y: 0, rotate: 0, opacity: 1 });
+      // Simple return to center
+      controls.start({ 
+        x: 0, 
+        y: 0, 
+        rotate: 0,
+        scale: 1,
+        opacity: 1,
+        transition: {
+          duration: 0.2,
+          ease: "easeOut"
+        }
+      });
     }
 
     setSwipeDirection(null);
