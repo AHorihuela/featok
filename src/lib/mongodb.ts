@@ -12,7 +12,8 @@ let retries = 3;
 export default async function connectDB() {
   try {
     // If already connected, return early
-    if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) {
+    const readyState = mongoose.connection.readyState;
+    if (readyState === mongoose.STATES.connected) {
       return;
     }
 
@@ -22,7 +23,7 @@ export default async function connectDB() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         retries--;
       }
-      if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) return;
+      if (mongoose.connection.readyState === mongoose.STATES.connected) return;
     }
 
     isConnecting = true;
