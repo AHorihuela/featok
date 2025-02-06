@@ -5,15 +5,23 @@ export function useVoting(ideas: ProductIdea[], setIdeas: (ideas: ProductIdea[])
   const [currentIndex, setCurrentIndex] = useState(0);
   const [voteConfirmation, setVoteConfirmation] = useState<VoteConfirmation | null>(null);
   const [lastVote, setLastVote] = useState<VoteConfirmation | null>(null);
+  const [isVoting, setIsVoting] = useState(false);
 
   const handleVote = async (type: VoteType) => {
-    if (currentIndex >= ideas.length) return;
+    if (currentIndex >= ideas.length || isVoting) {
+      console.log('Vote blocked: ', { currentIndex, isVoting, totalIdeas: ideas.length });
+      return;
+    }
 
+    setIsVoting(true);
     const currentIdea = ideas[currentIndex];
-    setVoteConfirmation({ type, idea: currentIdea });
-    setLastVote({ type, idea: currentIdea });
-
+    
     try {
+      console.log('Submitting vote: ', { type, ideaId: currentIdea.shareableId });
+      
+      setVoteConfirmation({ type, idea: currentIdea });
+      setLastVote({ type, idea: currentIdea });
+
       const response = await fetch(
         `/api/ideas/${currentIdea.shareableId}/vote`,
         {
@@ -29,23 +37,30 @@ export function useVoting(ideas: ProductIdea[], setIdeas: (ideas: ProductIdea[])
         throw new Error('Failed to submit vote');
       }
 
-      const updatedIdea = await response.json();
+      const updatedIdea = await response.json() as ProductIdea;
+      console.log('Vote recorded: ', { updatedIdea });
 
-      setIdeas(
-        ideas.map(idea =>
+      // Update the ideas array with the new vote counts
+      setIdeas((prevIdeas: ProductIdea[]): ProductIdea[] => 
+        prevIdeas.map((idea: ProductIdea): ProductIdea =>
           idea.shareableId === updatedIdea.shareableId ? updatedIdea : idea
         )
       );
 
-      setTimeout(() => {
-        setVoteConfirmation(null);
-        setCurrentIndex(prev => prev + 1);
-      }, 800);
+      // Wait for animations and state updates
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Clear vote confirmation and move to next idea
+      setVoteConfirmation(null);
+      setCurrentIndex(prev => prev + 1);
+      
+      console.log('Moving to next idea: ', { newIndex: currentIndex + 1 });
     } catch (error) {
       console.error('Vote error:', error);
       setVoteConfirmation(null);
       setLastVote(null);
-      throw error;
+    } finally {
+      setIsVoting(false);
     }
   };
 
@@ -67,10 +82,10 @@ export function useVoting(ideas: ProductIdea[], setIdeas: (ideas: ProductIdea[])
         throw new Error('Failed to undo vote');
       }
 
-      const updatedIdea = await response.json();
+      const updatedIdea = await response.json() as ProductIdea;
 
-      setIdeas(
-        ideas.map(idea =>
+      setIdeas((prevIdeas: ProductIdea[]): ProductIdea[] =>
+        prevIdeas.map((idea: ProductIdea): ProductIdea =>
           idea.shareableId === updatedIdea.shareableId ? updatedIdea : idea
         )
       );
