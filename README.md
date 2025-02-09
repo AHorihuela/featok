@@ -2,6 +2,10 @@
 
 A modern platform for collecting and voting on product ideas with a Tinder-like interface.
 
+<div align="center">
+  <img src="docs/assets/demo.gif" alt="Featok Demo" width="300" />
+</div>
+
 ## Features
 
 - 🎯 Create and share idea lists
