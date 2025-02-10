@@ -18,26 +18,22 @@ A modern platform for collecting and voting on product ideas with a Tinder-like 
 ## How It Works
 
 ### Creating Ideas
-![Creating Ideas](docs/assets/create.png)
-Add your product ideas with titles and descriptions. Separate multiple ideas with blank lines.
+Add your product ideas with titles and descriptions. Separate multiple ideas with blank lines for easy bulk submission.
 
 ### Voting Interface
-![Voting Interface](docs/assets/vote.png)
-Swipe right for Love ❤️, up for Neat 👍, or left for Meh 🤷‍♂️.
+Swipe right for Love ❤️, up for Neat 👍, or left for Meh 🤷‍♂️. You can also use the buttons below the card for voting.
 
 ### Results Dashboard
-![Results](docs/assets/results.png)
-View voting results and statistics for your ideas.
+View voting results and statistics for your ideas, including love, neat, and meh counts for each idea.
 
 ### Managing Lists
-![Managing Lists](docs/assets/manage.png)
-Edit, share, or delete your idea lists.
+Easily edit, share, or delete your idea lists. Share links with others to collect votes on your ideas.
 
 ## Getting Started
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/featok.git
+git clone https://github.com/AHorihuela/featok.git
 cd featok
 ```
 
