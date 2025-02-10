@@ -5,6 +5,22 @@ import { nanoid } from 'nanoid';
 import { spawn } from 'child_process';
 import { join } from 'path';
 
+interface ErrorResponse {
+  message: string;
+  code: string;
+  details?: unknown;
+}
+
+function createErrorResponse(error: ErrorResponse, status: number) {
+  return NextResponse.json(
+    { error },
+    { 
+      status,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+}
+
 async function generateTitle(ideas: Array<{ title: string; description: string }>) {
   try {
     // First try a simple JavaScript-based title generation
@@ -97,72 +113,53 @@ export async function POST(req: Request) {
       ideas = body.ideas;
       creatorId = body.creatorId;
     } catch (parseError) {
-      console.error('Failed to parse request body:', parseError);
-      return new NextResponse(
-        JSON.stringify({ message: 'Invalid request body' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return createErrorResponse(
+        { message: 'Invalid request body', code: 'INVALID_JSON' },
+        400
       );
     }
 
-    // Validate input
     if (!Array.isArray(ideas) || ideas.length === 0) {
-      return new NextResponse(
-        JSON.stringify({ message: 'At least one idea is required' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return createErrorResponse(
+        { message: 'At least one idea is required', code: 'MISSING_IDEAS' },
+        400
       );
     }
 
     if (!creatorId) {
-      return new NextResponse(
-        JSON.stringify({ message: 'Creator ID is required' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return createErrorResponse(
+        { message: 'Creator ID is required', code: 'MISSING_CREATOR_ID' },
+        400
       );
     }
 
-    // Validate each idea
     for (const idea of ideas) {
       if (!idea.title || !idea.description) {
-        return new NextResponse(
-          JSON.stringify({ message: 'Title and description are required for each idea' }),
-          { 
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          }
+        return createErrorResponse(
+          { message: 'Title and description are required for each idea', code: 'INVALID_IDEA' },
+          400
         );
       }
     }
 
     try {
-      // Connect to database
       await connectDB();
     } catch (dbError) {
       console.error('Database connection error:', dbError);
-      return new NextResponse(
-        JSON.stringify({ message: 'Database connection failed' }),
+      return createErrorResponse(
         { 
-          status: 503,
-          headers: { 'Content-Type': 'application/json' }
-        }
+          message: 'Database connection failed', 
+          code: 'DB_CONNECTION_ERROR',
+          details: dbError instanceof Error ? dbError.message : String(dbError)
+        },
+        503
       );
     }
 
-    // Generate a unique group ID for this set of ideas
     const groupId = nanoid(10);
-
-    // Generate title for the group
     const groupTitle = await generateTitle(ideas);
 
     try {
-      // Create all ideas with the same group ID
       const createdIdeas = await Promise.all(
         ideas.map(async (idea, index) => {
           try {
@@ -178,42 +175,39 @@ export async function POST(req: Request) {
               views: 0
             });
           } catch (createError) {
-            console.error(`Failed to create idea ${index}:`, createError);
             throw new Error(`Failed to create idea ${index}: ${createError instanceof Error ? createError.message : 'Unknown error'}`);
           }
         })
       );
 
-      return new NextResponse(
-        JSON.stringify({
-          message: 'Ideas submitted successfully',
-          groupId,
-          groupTitle,
-          count: createdIdeas.length,
-        }),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return NextResponse.json({
+        message: 'Ideas submitted successfully',
+        groupId,
+        groupTitle,
+        count: createdIdeas.length,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
     } catch (dbError) {
       console.error('Failed to create ideas:', dbError);
-      return new NextResponse(
-        JSON.stringify({ message: 'Failed to save ideas to database' }),
+      return createErrorResponse(
         { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+          message: 'Failed to save ideas to database', 
+          code: 'DB_ERROR',
+          details: dbError instanceof Error ? dbError.message : String(dbError)
+        },
+        500
       );
     }
   } catch (error) {
     console.error('Unexpected error in ideas creation:', error);
-    return new NextResponse(
-      JSON.stringify({ message: 'An unexpected error occurred' }),
+    return createErrorResponse(
       { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+        message: 'An unexpected error occurred', 
+        code: 'INTERNAL_ERROR',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      500
     );
   }
 }

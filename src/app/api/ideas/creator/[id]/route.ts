@@ -18,101 +18,75 @@ function createErrorResponse(error: ErrorResponse, status: number) {
   );
 }
 
-export async function GET(request: Request) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const id = request.url.split('/').pop();
+    const creatorId = params.id;
     
-    if (!id) {
+    if (!creatorId) {
       return createErrorResponse(
-        { message: 'Creator ID is required', code: 'MISSING_ID' },
+        { message: 'Creator ID is required', code: 'MISSING_CREATOR_ID' },
         400
       );
     }
 
     try {
       await connectDB();
-    } catch (error) {
-      console.error('Database connection error:', error instanceof Error ? error.message : error);
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
       return createErrorResponse(
         { 
           message: 'Database connection failed', 
           code: 'DB_CONNECTION_ERROR',
-          details: error instanceof Error ? error.message : String(error)
+          details: dbError instanceof Error ? dbError.message : String(dbError)
         },
         503
       );
     }
 
     try {
-      // Find all ideas by creator, grouped by groupId
-      const ideas = await ProductIdea.find({ creatorId: id })
-        .sort({ createdAt: -1 })
-        .maxTimeMS(5000); // Add timeout to prevent long-running queries
+      const ideas = await ProductIdea.aggregate([
+        { $match: { creatorId } },
+        {
+          $group: {
+            _id: '$groupId',
+            groupTitle: { $first: '$groupTitle' },
+            ideas: {
+              $push: {
+                _id: '$_id',
+                title: '$title',
+                description: '$description',
+                shareableId: '$shareableId',
+                votes: '$votes',
+                views: '$views',
+                order: '$order'
+              }
+            },
+            totalViews: { $sum: '$views' },
+            createdAt: { $first: '$createdAt' }
+          }
+        },
+        { $sort: { createdAt: -1 } }
+      ]).exec();
 
-      if (!ideas || ideas.length === 0) {
-        return NextResponse.json([], {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-
-      // Group ideas by groupId
-      const groupedIdeas = ideas.reduce((acc, idea) => {
-        const group = acc.find((g: { groupId: string }) => g.groupId === idea.groupId);
-        if (group) {
-          group.ideas.push({
-            title: idea.title,
-            description: idea.description,
-            votes: idea.votes,
-            views: idea.views || 0,
-          });
-        } else {
-          acc.push({
-            groupId: idea.groupId,
-            groupTitle: idea.groupTitle || 'My Ideas',
-            createdAt: idea.createdAt,
-            ideas: [
-              {
-                title: idea.title,
-                description: idea.description,
-                votes: idea.votes,
-                views: idea.views || 0,
-              },
-            ],
-          });
-        }
-        return acc;
-      }, [] as Array<{
-        groupId: string;
-        groupTitle: string;
-        createdAt: Date;
-        ideas: Array<{
-          title: string;
-          description: string;
-          votes: {
-            superLike: number;
-            up: number;
-            neutral: number;
-          };
-          views: number;
-        }>;
-      }>);
-
-      return NextResponse.json(groupedIdeas, {
+      return NextResponse.json(ideas, {
         headers: { 'Content-Type': 'application/json' }
       });
-    } catch (error) {
-      console.error('Query error:', error instanceof Error ? error.message : error);
+    } catch (queryError) {
+      console.error('Query error:', queryError);
       return createErrorResponse(
         { 
           message: 'Failed to fetch ideas', 
           code: 'QUERY_ERROR',
-          details: error instanceof Error ? error.message : String(error)
+          details: queryError instanceof Error ? queryError.message : String(queryError)
         },
         500
       );
     }
   } catch (error) {
-    console.error('Unexpected error:', error instanceof Error ? error.message : error);
+    console.error('Unexpected error:', error);
     return createErrorResponse(
       { 
         message: 'An unexpected error occurred', 
