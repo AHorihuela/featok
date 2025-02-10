@@ -4,7 +4,17 @@ import ProductIdea from '@/models/ProductIdea';
 
 export async function POST(request: Request) {
   try {
-    const id = request.url.split('/').pop();
+    // Extract ID from URL
+    const segments = request.url.split('/');
+    const id = segments[segments.indexOf('ideas') + 1];
+    
+    if (!id) {
+      return NextResponse.json(
+        { message: 'Missing idea ID' },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
     const idea = await ProductIdea.findOneAndUpdate(
@@ -14,7 +24,10 @@ export async function POST(request: Request) {
     );
 
     if (!idea) {
-      return NextResponse.json({ message: 'Idea not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Idea not found' },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ views: idea.views });

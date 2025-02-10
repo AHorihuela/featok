@@ -19,6 +19,7 @@ interface IdeaGroup {
       up: number;
       neutral: number;
     };
+    views?: number;
   }>;
   createdAt: string;
 }
@@ -238,7 +239,10 @@ export default function MyLists() {
                         className="mt-4 overflow-hidden"
                       >
                         <IdeaStatsComponent 
-                          ideas={group.ideas} 
+                          ideas={group.ideas.map(idea => ({
+                            ...idea,
+                            views: idea.views || 0
+                          }))} 
                           groupId={group.groupId} 
                         />
                       </motion.div>

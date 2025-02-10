@@ -118,7 +118,11 @@ export default function SwipePage({ params }: PageProps) {
       if (!response.ok) {
         throw new Error('Failed to fetch ideas');
       }
-      const data = await response.json();
+      const data = await response.json() as { 
+        ideas: ProductIdea[]; 
+        pagination: { hasMore: boolean }; 
+        groupTitle: string;
+      };
       
       if (!data.ideas) {
         throw new Error('Invalid response format');
@@ -128,7 +132,12 @@ export default function SwipePage({ params }: PageProps) {
       // Keep original order for completion screen
       setIdeas(data.ideas);
       // Shuffle for voting
-      setVotingIdeas(shuffleArray(data.ideas));
+      const shuffledIdeas = shuffleArray<ProductIdea>(data.ideas);
+      setVotingIdeas(shuffledIdeas);
+      // Track view for first idea immediately
+      if (shuffledIdeas.length > 0) {
+        trackView(shuffledIdeas[0].shareableId);
+      }
       setOffset(data.ideas.length);
       setGroupTitle(data.groupTitle || 'Featok');
       
@@ -143,23 +152,30 @@ export default function SwipePage({ params }: PageProps) {
     }
   };
 
-  // Add a function to track views
+  // Add effect to track view when currentIndex changes
+  useEffect(() => {
+    if (votingIdeas[currentIndex] && !isLoading) {
+      // Add a small delay to ensure the card is visible
+      const timeoutId = setTimeout(() => {
+        trackView(votingIdeas[currentIndex].shareableId);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [currentIndex, votingIdeas, isLoading]);
+
+  // Track view function with debounce
   const trackView = async (ideaId: string) => {
     try {
-      await fetch(`/api/ideas/${ideaId}/view`, {
+      const response = await fetch(`/api/ideas/${ideaId}/view`, {
         method: 'POST',
       });
+      if (!response.ok) {
+        console.error('Failed to track view');
+      }
     } catch (error) {
       console.error('Failed to track view:', error);
     }
   };
-
-  // Add effect to track view when currentIndex changes
-  useEffect(() => {
-    if (votingIdeas[currentIndex]) {
-      trackView(votingIdeas[currentIndex].shareableId);
-    }
-  }, [currentIndex, votingIdeas]);
 
   const getBackgroundColor = () => {
     if (swipeDirection === 'superLike' || buttonVoteType === 'superLike') {
