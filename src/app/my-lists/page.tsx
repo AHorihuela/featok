@@ -47,11 +47,27 @@ export default function MyLists() {
   const fetchGroups = async (creatorId: string) => {
     try {
       const response = await fetch(`/api/ideas/creator/${creatorId}`);
-      if (!response.ok) throw new Error('Failed to fetch lists');
+      
       const data = await response.json();
+      
+      if (!response.ok) {
+        const errorMessage = data.error?.message || 'Failed to fetch lists';
+        const errorDetails = data.error?.details;
+        
+        if (response.status === 503) {
+          setError('Database connection failed. Please try again in a few minutes.');
+        } else if (response.status === 400) {
+          setError('Invalid creator ID. Please try creating a new list.');
+        } else {
+          setError(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`);
+        }
+        console.error('Fetch error:', data.error);
+        return;
+      }
+
       setGroups(data);
     } catch (error) {
-      setError('Failed to load your lists. Please try again later.');
+      setError('Failed to load your lists. Please check your internet connection and try again.');
       console.error('Fetch error:', error);
     } finally {
       setIsLoading(false);
