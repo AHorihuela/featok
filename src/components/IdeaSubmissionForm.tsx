@@ -122,10 +122,15 @@ export default function IdeaSubmissionForm() {
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error('Invalid server response');
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to submit ideas');
+        throw new Error(data.message || response.statusText || 'Failed to submit ideas');
       }
 
       // Store the group ID in localStorage for editing later

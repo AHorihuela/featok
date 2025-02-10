@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       } else {
         acc.push({
           groupId: idea.groupId,
+          groupTitle: idea.groupTitle || 'My Ideas',
           createdAt: idea.createdAt,
           ideas: [
             {
@@ -43,6 +44,7 @@ export async function GET(request: Request) {
       return acc;
     }, [] as Array<{
       groupId: string;
+      groupTitle: string;
       createdAt: Date;
       ideas: Array<{
         title: string;
