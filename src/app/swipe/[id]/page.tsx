@@ -34,6 +34,7 @@ export default function SwipePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const [ideas, setIdeas] = useState<ProductIdea[]>([]);
+  const [votingIdeas, setVotingIdeas] = useState<ProductIdea[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -53,14 +54,14 @@ export default function SwipePage({ params }: PageProps) {
     handleUndo,
     isVoting,
     hasRetries,
-  } = useVoting(ideas, setIdeas);
+  } = useVoting(votingIdeas, setVotingIdeas);
 
   // Load more ideas when we're getting close to the end
   useEffect(() => {
-    if (currentIndex >= ideas.length - 2 && hasMore && !isLoadingMore) {
+    if (currentIndex >= votingIdeas.length - 2 && hasMore && !isLoadingMore) {
       loadMoreIdeas();
     }
-  }, [currentIndex, ideas.length, hasMore, isLoadingMore]);
+  }, [currentIndex, votingIdeas.length, hasMore, isLoadingMore]);
 
   const loadMoreIdeas = async () => {
     if (isLoadingMore || !hasMore) return;
@@ -78,7 +79,10 @@ export default function SwipePage({ params }: PageProps) {
       }
 
       setHasMore(data.pagination.hasMore);
-      setIdeas(prev => [...prev, ...shuffleArray<ProductIdea>(data.ideas)]);
+      // Keep original order for completion screen
+      setIdeas(prev => [...prev, ...data.ideas]);
+      // Shuffle only for voting
+      setVotingIdeas(prev => [...prev, ...shuffleArray<ProductIdea>(data.ideas)]);
       setOffset(prev => prev + data.ideas.length);
       setGroupTitle(data.groupTitle || 'Featok');
       
@@ -121,7 +125,10 @@ export default function SwipePage({ params }: PageProps) {
       }
       
       setHasMore(data.pagination.hasMore);
-      setIdeas(shuffleArray(data.ideas));
+      // Keep original order for completion screen
+      setIdeas(data.ideas);
+      // Shuffle for voting
+      setVotingIdeas(shuffleArray(data.ideas));
       setOffset(data.ideas.length);
       setGroupTitle(data.groupTitle || 'Featok');
       
@@ -149,10 +156,10 @@ export default function SwipePage({ params }: PageProps) {
 
   // Add effect to track view when currentIndex changes
   useEffect(() => {
-    if (ideas[currentIndex]) {
-      trackView(ideas[currentIndex].shareableId);
+    if (votingIdeas[currentIndex]) {
+      trackView(votingIdeas[currentIndex].shareableId);
     }
-  }, [currentIndex, ideas]);
+  }, [currentIndex, votingIdeas]);
 
   const getBackgroundColor = () => {
     if (swipeDirection === 'superLike' || buttonVoteType === 'superLike') {
@@ -182,7 +189,7 @@ export default function SwipePage({ params }: PageProps) {
     );
   }
 
-  if (currentIndex >= ideas.length) {
+  if (currentIndex >= votingIdeas.length) {
     return (
       <CompletionScreen 
         ideas={ideas}
@@ -193,7 +200,7 @@ export default function SwipePage({ params }: PageProps) {
     );
   }
 
-  const currentIdea = ideas[currentIndex];
+  const currentIdea = votingIdeas[currentIndex];
 
   return (
     <motion.main 
@@ -227,7 +234,7 @@ export default function SwipePage({ params }: PageProps) {
             <span className="font-medium text-gray-400">{currentIndex + 1}</span>
             <span className="text-gray-300">/</span>
             <span className="font-medium text-gray-500">
-              {ideas.length}
+              {votingIdeas.length}
             </span>
             {hasRetries && (
               <motion.span 
@@ -252,7 +259,7 @@ export default function SwipePage({ params }: PageProps) {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.3 }}
         >
-          {isLoadingMore && currentIndex === ideas.length - 1 && (
+          {isLoadingMore && currentIndex === votingIdeas.length - 1 && (
             <motion.div 
               className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-3xl"
               initial={{ opacity: 0 }}
@@ -275,7 +282,7 @@ export default function SwipePage({ params }: PageProps) {
               setButtonVoteType(null);
             }}
             isVoting={isVoting}
-            remainingCount={ideas.length - currentIndex - 1}
+            remainingCount={votingIdeas.length - currentIndex - 1}
             dragProps={{
               drag: !voteConfirmation && !isVoting,
               dragConstraints: { left: 0, right: 0, top: 0, bottom: 0 },

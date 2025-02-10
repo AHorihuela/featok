@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { ProductIdea } from '@/types/ideas';
@@ -11,6 +11,42 @@ interface CompletionScreenProps {
 }
 
 export function CompletionScreen({ ideas, isCreator, onEdit, onManage }: CompletionScreenProps) {
+  // Calculate sorted ideas and stats
+  const processedIdeas = useMemo(() => {
+    return ideas.map(idea => {
+      const totalVotes = idea.votes.superLike + idea.votes.up + idea.votes.neutral;
+      const superLikePercentage = totalVotes > 0 ? Math.round((idea.votes.superLike / totalVotes) * 100) : 0;
+      const upPercentage = totalVotes > 0 ? Math.round((idea.votes.up / totalVotes) * 100) : 0;
+      const neutralPercentage = totalVotes > 0 ? Math.round((idea.votes.neutral / totalVotes) * 100) : 0;
+      
+      return {
+        ...idea,
+        totalVotes,
+        superLikePercentage,
+        upPercentage,
+        neutralPercentage,
+        score: (idea.votes.superLike * 2) + idea.votes.up // Weighted score
+      };
+    }).sort((a, b) => b.score - a.score);
+  }, [ideas]);
+
+  // Calculate overall stats
+  const stats = useMemo(() => {
+    const totalVotes = ideas.reduce((sum, idea) => 
+      sum + idea.votes.superLike + idea.votes.up + idea.votes.neutral, 0);
+    const totalSuperLikes = ideas.reduce((sum, idea) => sum + idea.votes.superLike, 0);
+    const totalUps = ideas.reduce((sum, idea) => sum + idea.votes.up, 0);
+    const totalNeutrals = ideas.reduce((sum, idea) => sum + idea.votes.neutral, 0);
+    
+    return {
+      totalVotes,
+      avgVotesPerIdea: Math.round(totalVotes / ideas.length),
+      superLikePercentage: Math.round((totalSuperLikes / totalVotes) * 100) || 0,
+      upPercentage: Math.round((totalUps / totalVotes) * 100) || 0,
+      neutralPercentage: Math.round((totalNeutrals / totalVotes) * 100) || 0
+    };
+  }, [ideas]);
+
   useEffect(() => {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
@@ -48,12 +84,12 @@ export function CompletionScreen({ ideas, isCreator, onEdit, onManage }: Complet
 
   return (
     <motion.div 
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-screen flex items-center justify-center py-12"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="text-center max-w-2xl mx-auto px-4">
+      <div className="text-center max-w-3xl mx-auto px-4">
         <motion.h1 
           className="text-3xl font-bold mb-4"
           initial={{ y: -20 }}
@@ -62,14 +98,27 @@ export function CompletionScreen({ ideas, isCreator, onEdit, onManage }: Complet
         >
           All Done! 🎉
         </motion.h1>
-        <motion.p 
-          className="text-gray-600 mb-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+
+        {/* Overall Stats */}
+        <motion.div
+          className="grid grid-cols-3 gap-4 mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          You&apos;ve voted on all the ideas in this group.
-        </motion.p>
+          <div className="bg-white rounded-lg p-4 shadow">
+            <div className="text-2xl font-bold text-blue-500">{stats.totalVotes}</div>
+            <div className="text-sm text-gray-600">Total Votes</div>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow">
+            <div className="text-2xl font-bold text-green-500">{stats.avgVotesPerIdea}</div>
+            <div className="text-sm text-gray-600">Avg Votes/Idea</div>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow">
+            <div className="text-2xl font-bold text-purple-500">{stats.superLikePercentage}%</div>
+            <div className="text-sm text-gray-600">Love Rate</div>
+          </div>
+        </motion.div>
         
         {isCreator && (
           <motion.div 
@@ -99,19 +148,65 @@ export function CompletionScreen({ ideas, isCreator, onEdit, onManage }: Complet
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          <h2 className="text-xl font-semibold">Final Results:</h2>
-          {ideas.map((idea, index) => (
+          <h2 className="text-xl font-semibold mb-6">Ideas Ranked by Popularity</h2>
+          {processedIdeas.map((idea, index) => (
             <motion.div
               key={idea._id}
-              className="bg-white rounded-lg p-4 shadow hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg p-6 shadow hover:shadow-md transition-shadow"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.8 + index * 0.1 }}
             >
-              <h3 className="font-medium">{idea.title}</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                ❤️ {idea.votes.superLike} | 👍 {idea.votes.up} | 🤷 {idea.votes.neutral}
-              </p>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-lg flex items-center gap-2">
+                    {index < 3 && (
+                      <span className="text-xl">
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                      </span>
+                    )}
+                    {idea.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">{idea.description}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-semibold">{idea.totalVotes} votes</div>
+                  <div className="text-sm text-gray-500">Score: {idea.score}</div>
+                </div>
+              </div>
+              
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="text-sm">
+                  <div className="font-medium text-green-600">❤️ {idea.votes.superLike}</div>
+                  <div className="text-gray-500">{idea.superLikePercentage}%</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-medium text-yellow-600">👍 {idea.votes.up}</div>
+                  <div className="text-gray-500">{idea.upPercentage}%</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-medium text-red-600">🤷 {idea.votes.neutral}</div>
+                  <div className="text-gray-500">{idea.neutralPercentage}%</div>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-3 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div className="flex h-full">
+                  <div 
+                    className="bg-green-500 h-full" 
+                    style={{ width: `${idea.superLikePercentage}%` }}
+                  />
+                  <div 
+                    className="bg-yellow-500 h-full" 
+                    style={{ width: `${idea.upPercentage}%` }}
+                  />
+                  <div 
+                    className="bg-red-500 h-full" 
+                    style={{ width: `${idea.neutralPercentage}%` }}
+                  />
+                </div>
+              </div>
             </motion.div>
           ))}
         </motion.div>
