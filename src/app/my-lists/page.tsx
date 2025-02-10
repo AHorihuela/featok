@@ -44,17 +44,34 @@ export default function MyLists() {
     fetchGroups(creatorId);
   }, []);
 
-  const fetchGroups = async (creatorId: string) => {
+  const fetchGroups = async (creatorId: string, retryCount = 0) => {
     try {
       const response = await fetch(`/api/ideas/creator/${creatorId}`);
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        if (retryCount < 3) {
+          // Wait a bit and retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return fetchGroups(creatorId, retryCount + 1);
+        }
+        setError('Server returned an invalid response. Please try again later.');
+        return;
+      }
       
       if (!response.ok) {
         const errorMessage = data.error?.message || 'Failed to fetch lists';
         const errorDetails = data.error?.details;
         
         if (response.status === 503) {
+          if (retryCount < 3) {
+            // Wait a bit longer for DB connection issues
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return fetchGroups(creatorId, retryCount + 1);
+          }
           setError('Database connection failed. Please try again in a few minutes.');
         } else if (response.status === 400) {
           setError('Invalid creator ID. Please try creating a new list.');
@@ -67,8 +84,13 @@ export default function MyLists() {
 
       setGroups(data);
     } catch (error) {
-      setError('Failed to load your lists. Please check your internet connection and try again.');
       console.error('Fetch error:', error);
+      if (retryCount < 3) {
+        // Wait a bit and retry network errors
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchGroups(creatorId, retryCount + 1);
+      }
+      setError('Failed to load your lists. Please check your internet connection and try again.');
     } finally {
       setIsLoading(false);
     }

@@ -23,6 +23,7 @@ const state: ConnectionState = {
 const RETRY_INTERVAL = 1000; // 1 second
 const MAX_RETRIES = 3;
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const CONNECTION_TIMEOUT = 10000; // 10 seconds
 
 function startHealthCheck() {
   if (state.healthCheckInterval) {
@@ -31,7 +32,8 @@ function startHealthCheck() {
 
   state.healthCheckInterval = setInterval(async () => {
     try {
-      if (mongoose.connection.readyState !== mongoose.STATES.connected) {
+      const readyState = mongoose.connection.readyState as mongoose.ConnectionStates;
+      if (readyState !== mongoose.ConnectionStates.connected) {
         console.warn('MongoDB connection lost, attempting to reconnect...');
         await connectDB();
       }
@@ -44,21 +46,26 @@ function startHealthCheck() {
 export default async function connectDB() {
   try {
     // If already connected, return early
-    if (mongoose.connection.readyState === mongoose.STATES.connected) {
+    const readyState = mongoose.connection.readyState as mongoose.ConnectionStates;
+    if (readyState === mongoose.ConnectionStates.connected) {
       return mongoose.connection;
     }
 
     // If connecting, wait
     if (state.isConnecting) {
       let waitTime = 0;
-      while (state.isConnecting && waitTime < RETRY_INTERVAL * MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        waitTime += RETRY_INTERVAL;
+      while (state.isConnecting && waitTime < CONNECTION_TIMEOUT) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        waitTime += 100;
         
-        const readyState = mongoose.connection.readyState as mongoose.ConnectionStates;
-        if (readyState === mongoose.ConnectionStates.connected) {
+        const currentState = mongoose.connection.readyState as mongoose.ConnectionStates;
+        if (currentState === mongoose.ConnectionStates.connected) {
           return mongoose.connection;
         }
+      }
+      
+      if (state.isConnecting) {
+        throw new Error('Connection attempt timed out');
       }
     }
 
@@ -75,43 +82,54 @@ export default async function connectDB() {
       heartbeatFrequencyMS: 10000,
     };
 
-    const conn = await mongoose.connect(MONGODB_URI, opts);
-    
-    // Reset state on successful connection
-    state.isConnecting = false;
-    state.retries = MAX_RETRIES;
-    state.lastError = null;
-    
-    // Start health check
-    startHealthCheck();
-    
-    // Handle connection events
-    mongoose.connection.on('error', (error) => {
-      console.error('MongoDB connection error:', error);
-      state.lastError = error;
-    });
+    try {
+      const conn = await Promise.race([
+        mongoose.connect(MONGODB_URI, opts),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), CONNECTION_TIMEOUT)
+        )
+      ]) as mongoose.Connection;
+      
+      // Reset state on successful connection
+      state.isConnecting = false;
+      state.retries = MAX_RETRIES;
+      state.lastError = null;
+      
+      // Start health check
+      startHealthCheck();
+      
+      // Handle connection events
+      mongoose.connection.on('error', (error) => {
+        console.error('MongoDB connection error:', error);
+        state.lastError = error;
+      });
 
-    mongoose.connection.on('disconnected', () => {
-      console.warn('MongoDB disconnected');
+      mongoose.connection.on('disconnected', () => {
+        console.warn('MongoDB disconnected');
+        if (state.retries > 0) {
+          state.retries--;
+          setTimeout(() => connectDB(), RETRY_INTERVAL);
+        }
+      });
+
+      return conn;
+    } catch (error) {
+      state.isConnecting = false;
+      state.lastError = error as Error;
+      
       if (state.retries > 0) {
         state.retries--;
-        setTimeout(() => connectDB(), RETRY_INTERVAL);
+        console.log(`Connection failed. Retrying... (${state.retries} attempts left)`);
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(connectDB()), RETRY_INTERVAL);
+        });
       }
-    });
-
-    return conn;
+      
+      throw new Error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   } catch (error) {
     state.isConnecting = false;
     state.lastError = error as Error;
-    
-    if (state.retries > 0) {
-      state.retries--;
-      console.log(`Connection failed. Retrying... (${state.retries} attempts left)`);
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(connectDB()), RETRY_INTERVAL);
-      });
-    }
-    
-    throw new Error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw error;
   }
 }
