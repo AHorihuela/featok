@@ -42,7 +42,7 @@ const ProductIdeaSchema = new mongoose.Schema({
   groupTitle: {
     type: String,
     required: true,
-    default: 'My Ideas',
+    default: 'Featok',
   },
   creatorId: {
     type: String,

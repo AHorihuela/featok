@@ -80,7 +80,7 @@ export default function SwipePage({ params }: PageProps) {
       setHasMore(data.pagination.hasMore);
       setIdeas(prev => [...prev, ...shuffleArray<ProductIdea>(data.ideas)]);
       setOffset(prev => prev + data.ideas.length);
-      setGroupTitle(data.groupTitle || 'Vote on Ideas');
+      setGroupTitle(data.groupTitle || 'Featok');
       
       if (data.ideas.length > 0 && data.ideas[0].creatorId === localStorage.getItem('featok_creator_id')) {
         setIsCreator(true);
@@ -123,7 +123,7 @@ export default function SwipePage({ params }: PageProps) {
       setHasMore(data.pagination.hasMore);
       setIdeas(shuffleArray(data.ideas));
       setOffset(data.ideas.length);
-      setGroupTitle(data.groupTitle || 'Vote on Ideas');
+      setGroupTitle(data.groupTitle || 'Featok');
       
       if (creatorId && data.ideas.length > 0 && data.ideas[0].creatorId === creatorId) {
         setIsCreator(true);

@@ -9,7 +9,7 @@ import json
 def generate_title(ideas):
     """Generate a title from a list of ideas using LSA summarization."""
     if not ideas:
-        return "My Ideas"
+        return "Featok"
     
     # Combine all idea titles and descriptions
     text = " ".join([f"{idea['title']}. {idea['description']}" for idea in ideas])
@@ -38,7 +38,7 @@ def generate_title(ideas):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("My Ideas")
+        print("Featok")
         sys.exit(1)
         
     try:
@@ -46,5 +46,5 @@ if __name__ == "__main__":
         title = generate_title(ideas)
         print(title)
     except Exception as e:
-        print("My Ideas")
+        print("Featok")
         sys.exit(1) 
