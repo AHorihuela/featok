@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppMenu } from '@/components/ui/app-menu';
-import { IdeaStats } from '@/components/ui/idea-stats';
-import { Link, Check, Trash2 } from 'lucide-react';
+import { Link, Check, Trash2, ChevronDown, ChevronUp, Edit } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { IdeaStatsComponent } from '@/components/ui/idea-stats';
 
 interface IdeaGroup {
   groupId: string;
@@ -24,10 +24,10 @@ interface IdeaGroup {
 }
 
 export default function MyLists() {
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
   const [groups, setGroups] = useState<IdeaGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
   const router = useRouter();
@@ -122,6 +122,14 @@ export default function MyLists() {
     }
   };
 
+  const toggleExpand = (groupId: string) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -166,29 +174,23 @@ export default function MyLists() {
               </button>
             </div>
           ) : (
-            groups.map(group => (
-              <motion.div
-                key={group.groupId}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
-              >
-                <div 
-                  className="p-6 cursor-pointer"
-                  onClick={() => setExpandedGroup(
-                    expandedGroup === group.groupId ? null : group.groupId
-                  )}
+            <AnimatePresence>
+              {groups.map((group) => (
+                <motion.div
+                  key={group.groupId}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm"
                 >
-                  <div className="flex justify-between items-start mb-4" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center">
                     <div>
-                      <h2 className="text-xl font-semibold mb-2">
-                        {group.groupTitle || group.ideas[0].title}
-                        {group.ideas.length > 1 && ` (${group.ideas.length} ideas)`}
-                      </h2>
-                      <p className="text-sm text-gray-600">
-                        Created {new Date(group.createdAt).toLocaleDateString()}
+                      <h2 className="text-xl font-semibold">{group.groupTitle}</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {group.ideas.length} ideas • Created {new Date(group.createdAt).toLocaleDateString()}
                       </p>
                     </div>
+                    
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleCopyLink(group.groupId)}
@@ -203,37 +205,48 @@ export default function MyLists() {
                       </button>
                       <button
                         onClick={() => handleEdit(group.groupId)}
-                        className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                       >
-                        Edit
+                        <Edit size={20} />
                       </button>
                       <button
                         onClick={() => setDeleteGroupId(group.groupId)}
-                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-200 flex items-center justify-center"
-                        aria-label="Delete list"
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900 text-red-500 rounded-lg transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={20} />
+                      </button>
+                      <button
+                        onClick={() => toggleExpand(group.groupId)}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      >
+                        {expandedGroups.includes(group.groupId) ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
+                        )}
                       </button>
                     </div>
                   </div>
 
-                  {expandedGroup === group.groupId && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <IdeaStats ideas={group.ideas.map(idea => ({
-                        ...idea,
-                        views: 0
-                      }))} groupId={group.groupId} />
-                    </motion.div>
-                  )}
-                </div>
-              </motion.div>
-            ))
+                  <AnimatePresence>
+                    {expandedGroups.includes(group.groupId) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-4 overflow-hidden"
+                      >
+                        <IdeaStatsComponent 
+                          ideas={group.ideas} 
+                          groupId={group.groupId} 
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
 

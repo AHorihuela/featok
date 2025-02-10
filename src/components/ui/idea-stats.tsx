@@ -22,7 +22,7 @@ interface IdeaStatsProps {
 
 type SortKey = 'superLike' | 'up' | 'neutral' | 'total' | 'score';
 
-function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
+export function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
   const [sortBy, setSortBy] = useState<SortKey>('score');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [copied, setCopied] = useState(false);
@@ -276,6 +276,4 @@ function IdeaStatsComponent({ ideas, groupId }: IdeaStatsProps) {
       </div>
     </div>
   );
-}
-
-export const IdeaStats = IdeaStatsComponent; 
+} 
