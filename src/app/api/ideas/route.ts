@@ -7,29 +7,59 @@ import { join } from 'path';
 
 async function generateTitle(ideas: Array<{ title: string; description: string }>) {
   try {
-    return new Promise((resolve) => {
-      try {
-        const pythonProcess = spawn('python3', [
-          join(process.cwd(), 'src/lib/summarize.py'),
-          JSON.stringify(ideas)
-        ]);
+    // First try a simple JavaScript-based title generation
+    if (ideas.length === 1) {
+      return ideas[0].title;
+    }
 
-        let output = '';
-        let error = '';
-
-        pythonProcess.stdout.on('data', (data) => {
-          output += data.toString();
+    // For multiple ideas, try to find common themes in titles
+    const commonWords = ideas
+      .map(idea => idea.title.toLowerCase().split(/\s+/))
+      .reduce((acc, words) => {
+        words.forEach(word => {
+          if (word.length > 3) { // Only count words longer than 3 chars
+            acc[word] = (acc[word] || 0) + 1;
+          }
         });
+        return acc;
+      }, {} as Record<string, number>);
 
-        pythonProcess.stderr.on('data', (data) => {
-          error += data.toString();
-        });
+    // Find the most common meaningful words
+    const commonThemes = Object.entries(commonWords)
+      .filter(([word]) => !['the', 'and', 'for', 'with'].includes(word))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([word]) => word);
 
-        pythonProcess.on('error', (err) => {
-          console.error('Python process error:', err);
-          resolve('My Ideas'); // Fallback on process error
-        });
+    if (commonThemes.length > 0) {
+      const theme = commonThemes.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return `${theme} Ideas`;
+    }
 
+    // If no common themes found, try Python summarization
+    try {
+      const pythonProcess = spawn('python3', [
+        join(process.cwd(), 'src/lib/summarize.py'),
+        JSON.stringify(ideas)
+      ]);
+
+      let output = '';
+      let error = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+      });
+
+      pythonProcess.on('error', (err) => {
+        console.error('Python process error:', err);
+        return 'My Ideas'; // Fallback on process error
+      });
+
+      const result = await new Promise<string>((resolve) => {
         pythonProcess.on('close', (code) => {
           if (code !== 0) {
             console.error('Python process exited with code:', code, 'Error:', error);
@@ -45,13 +75,15 @@ async function generateTitle(ideas: Array<{ title: string; description: string }
           console.error('Python process timed out');
           resolve('My Ideas');
         }, 5000);
-      } catch (err) {
-        console.error('Failed to spawn Python process:', err);
-        resolve('My Ideas');
-      }
-    });
+      });
+
+      return result;
+    } catch (err) {
+      console.error('Python process failed:', err);
+      return 'My Ideas';
+    }
   } catch (err) {
-    console.error('generateTitle error:', err);
+    console.error('Title generation error:', err);
     return 'My Ideas';
   }
 }
