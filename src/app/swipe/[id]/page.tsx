@@ -40,9 +40,9 @@ export default function SwipePage({ params }: PageProps) {
   const [isCreator, setIsCreator] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
-  const [groupTitle, setGroupTitle] = useState<string>('Cast your vote');
+  const [groupTitle, setGroupTitle] = useState<string>('Featok');
   const controls = useAnimation();
-  const [showInstructions, setShowInstructions] = useState(true);
+  const [showInstructions] = useState(true);
   const [buttonVoteType, setButtonVoteType] = useState<'superLike' | 'up' | 'neutral' | null>(null);
 
   const {
@@ -102,13 +102,6 @@ export default function SwipePage({ params }: PageProps) {
     await handleVote(type);
     setButtonVoteType(null);
   });
-
-  useEffect(() => {
-    if (showInstructions) {
-      const timer = setTimeout(() => setShowInstructions(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showInstructions]);
 
   useEffect(() => {
     const creatorId = localStorage.getItem('featok_creator_id');
@@ -310,7 +303,6 @@ export default function SwipePage({ params }: PageProps) {
                 touchAction: "none"
               },
               animate: controls,
-              onHoverStart: () => setShowInstructions(false),
             }}
           />
         </motion.div>
